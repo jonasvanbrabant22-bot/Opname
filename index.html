@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluvius Pro V44</title>
+    
+    <link rel="icon" type="image/jpeg" href="Opname.jpeg">
+    <link rel="apple-touch-icon" href="Opname.jpeg">
+
+    <style>
+        :root { --fluvius: #005496; --accent: #ffcc00; --bg: #f0f4f8; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.4; }
+        
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; border: 1px solid #d1d9e0; overflow: hidden; }
+        h2 { font-size: 0.95rem; color: var(--fluvius); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin: 0 0 12px 0; cursor: pointer; }
+        h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: #333; display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 10px; border-radius: 8px; cursor: pointer; }
+
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background: #fff; }
+        label { font-size: 0.75rem; font-weight: bold; color: #555; margin-bottom: 2px; display: block; }
+
+        .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; background: #e9ecef; padding: 10px; border-radius: 8px; }
+        
+        .choice-item { 
+            display: flex; align-items: center; gap: 8px; background: #f8f9fa; 
+            padding: 8px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.8rem; min-height: 44px;
+        }
+        .choice-item label { flex: 1; margin: 0; cursor: pointer; }
+        .choice-item input[type="checkbox"], .choice-item input[type="radio"] { width: 22px; height: 22px; flex-shrink: 0; }
+
+        .content { display: none; padding: 5px 0; }
+        .btn { background: var(--fluvius); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+        
+        .q-input-front { width: 60px; height: 35px; text-align: center; font-weight: bold; border: 2px solid var(--fluvius); border-radius: 6px; flex-shrink: 0; }
+        .sleuf-balk { 
+            background: var(--fluvius); color: white; padding: 15px; border-radius: 10px; 
+            margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+        }
+
+        .sub-section { margin-left: 10px; border-left: 2px solid #ddd; padding-left: 10px; margin-bottom: 10px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; padding: 0; }
+            .header-box { border: 1pt solid black; padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7pt; margin-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+            th, td { border: 0.5pt solid black; font-size: 5pt; height: 12pt; text-align: center; }
+            .row-label { text-align: left; width: 140px; font-weight: bold; padding-left: 2px; background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <div id="main-ui">
+        <div class="card" id="header-card">
+            <h2 onclick="toggle(this.parentElement)">1. Project & Nutsbedrijven (Tik om te openen)</h2>
+            <div class="content" id="header-content" style="display: block;">
+                <div class="grid-inputs">
+                    <div><label>DNW</label><input type="text" id="dnw" value=""></div>
+                    <div><label>Piloot</label><input type="text" id="piloot" value="Fluvius"></div>
+                    <div><label>Plaats</label><input type="text" id="plaats" placeholder="Plaats"></div>
+                    <div><label>Aannemer</label><input type="text" id="aannemer" placeholder="Aannemer"></div>
+                </div>
+
+                <div class="grid-inputs">
+                    <div><label>Startdatum</label><input type="date" id="s-datum"></div>
+                    <div><label>Opmeetdatum</label><input type="date" id="o-datum"></div>
+                </div>
+
+                <div class="check-group">
+                    <label><input type="checkbox" id="c-start"> Startverg. (3004943)</label>
+                    <label><input type="checkbox" id="c-veilig"> Veiligheidscoörd.</label>
+                </div>
+
+                <h3 onclick="toggle(this)">Fluvius (Elek & Gas) <span>▼</span></h3>
+                <div class="content">
+                    <div class="grid-inputs">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label class="choice-item"><input type="checkbox" value="4G 150"> 4G 150</label>
+                            <label class="choice-item"><input type="checkbox" value="4G 240"> 4G 240</label>
+                            <label class="choice-item"><input type="checkbox" value="4G 10"> 4G 10</label>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label class="choice-item"><input type="checkbox" value="PRC 150"> PRC 150</label>
+                            <label class="choice-item"><input type="checkbox" value="PRC 240"> PRC 240</label>
+                            <label class="choice-item"><input type="checkbox" onchange="toggleNext(this)"> Andere Fluvius...</label>
+                            <input type="text" class="extra-text content" placeholder="Specifieer leiding...">
+                        </div>
+                    </div>
+                    
+                    <div class="sub-section">
+                        <h3 onclick="toggle(this)" style="background:#ddd">Gas Diameters <span>▼</span></h3>
+                        <div class="content">
+                            <div class="grid-inputs">
+                                <label class="choice-item"><input type="checkbox" value="GAS 63"> 63</label>
+                                <label class="choice-item"><input type="checkbox" value="GAS 80"> 80</label>
+                                <label class="choice-item"><input type="checkbox" value="GAS 110"> 110</label>
+                                <label class="choice-item"><input type="checkbox" value="GAS 160"> 160</label>
+                                <label class="choice-item"><input type="checkbox" value="GAS 200"> 200</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 onclick="toggle(this)">Drinkwater <span>▼</span></h3>
+                <div class="content">
+                    <div class="grid-inputs">
+                        <label class="choice-item"><input type="checkbox" value="DW 80 PE"> 80 PE</label>
+                        <label class="choice-item"><input type="checkbox" value="DW 80 PVC"> 80 PVC</label>
+                        <label class="choice-item"><input type="checkbox" value="DW 100 PE"> 100 PE</label>
+                        <label class="choice-item"><input type="checkbox" value="DW 100 PVC"> 100 PVC</label>
+                        <label class="choice-item"><input type="checkbox" value="DW 150 PE"> 150 PE</label>
+                        <label class="choice-item"><input type="checkbox" value="DW 150 PVC"> 150 PVC</label>
+                    </div>
+                    <label class="choice-item"><input type="checkbox" onchange="toggleNext(this)"> Andere Drinkwater...</label>
+                    <input type="text" class="extra-text content" placeholder="Maat + Materiaal...">
+                </div>
+
+                <h3 onclick="toggle(this)">Proximus <span>▼</span></h3>
+                <div class="content">
+                    <div class="grid-inputs">
+                        <label class="choice-item"><input type="checkbox" value="20p"> 20p</label>
+                        <label class="choice-item"><input type="checkbox" value="50p"> 50p</label>
+                        <label class="choice-item"><input type="checkbox" value="100p"> 100p</label>
+                        <label class="choice-item"><input type="checkbox" value="HDPE"> HDPE</label>
+                        <label class="choice-item"><input type="checkbox" value="RSV"> RSV</label>
+                    </div>
+                    <label class="choice-item"><input type="checkbox" onchange="toggleNext(this)"> Andere Proximus...</label>
+                    <input type="text" class="extra-text content" placeholder="Specifieer leiding...">
+                </div>
+
+                <h3 onclick="toggle(this)">Wyre <span>▼</span></h3>
+                <div class="content">
+                    <div class="grid-inputs">
+                        <label class="choice-item"><input type="checkbox" value="Coax 14"> Coax 14</label>
+                        <label class="choice-item"><input type="checkbox" value="Coax 20"> Coax 20</label>
+                        <label class="choice-item"><input type="checkbox" value="Wachtbuis"> Wachtbuis</label>
+                        <label class="choice-item"><input type="checkbox" value="DB7"> DB7</label>
+                    </div>
+                    <label class="choice-item"><input type="checkbox" onchange="toggleNext(this)"> Andere Wyre...</label>
+                    <input type="text" class="extra-text content" placeholder="Specifieer leiding...">
+                </div>
+
+                <h3 onclick="toggle(this)">Andere Netbeheerder <span>▼</span></h3>
+                <div class="content">
+                    <input type="text" class="net-extra-naam" placeholder="Naam Netbeheerder">
+                    <input type="text" class="extra-text" placeholder="Welke leidingen?" style="margin-top:5px; display:block;">
+                </div>
+            </div>
+        </div>
+
+        <div id="sleuven-lijst"></div>
+        <button class="btn" style="background:#28a745;" onclick="openSleufForm()">+ VOEG NIEUWE SLEUF TOE</button>
+        <button class="btn" style="background:#000; margin-top:20px;" onclick="window.print()">GENEREER PDF</button>
+    </div>
+
+    <div id="sleuf-form" class="card" style="display:none;">
+        <h2 id="form-title">Nieuwe Sleuf</h2>
+        
+        <div class="card">
+            <b>Type Ondergrond:</b>
+            <div class="grid-inputs" style="margin-top:5px;">
+                <label class="choice-item"><input type="radio" name="surf" value="berm" checked onchange="uiSwitch()"> berm</label>
+                <label class="choice-item"><input type="radio" name="surf" value="losse bestrating" onchange="uiSwitch()"> losse bestrating</label>
+                <label class="choice-item"><input type="radio" name="surf" value="bitumen/cementbeton" onchange="uiSwitch()"> bitumen/cementbeton</label>
+                <label class="choice-item"><input type="radio" name="surf" value="Boring" id="is-boring" onchange="uiSwitch()"> Boring</label>
+            </div>
+        </div>
+
+        <div id="wrap-boring" class="card" style="display:none; background:#fffbcc; border: 2px solid var(--accent);">
+            <b>Diameter Boring (mm):</b>
+            <input type="number" id="f-dia" placeholder="bijv. 110">
+        </div>
+
+        <div class="card">
+            <b>1. Leidingen in deze sleuf:</b>
+            <div id="dynamic-mats" style="margin-top:8px;"></div>
+        </div>
+
+        <div id="wrap-werken" class="card">
+            <b>2. Werken:</b>
+            <div class="choice-list" style="margin-top:8px;">
+                <label class="choice-item"><input type="checkbox" class="work" value="uitbraak & Definitief herstel"> Uitbr. & Def. herstel</label>
+                <label class="choice-item"><input type="checkbox" class="work" value="uitbraak & Voorlopig / Zonder herstel"> Uitbr. & Voorl./Geen</label>
+                
+                <div class="choice-item">
+                    <input type="checkbox" class="work auto-qty" onchange="handleAutoQty(this)" value="bijkomende fundering Stab / M.Bet"> 
+                    <label>Fundering Stab/M.bet</label>
+                    <input type="number" class="q-input-front work-val" data-name="bijkomende fundering Stab / M.Bet" placeholder="m³">
+                </div>
+                
+                <div class="choice-item">
+                    <input type="checkbox" class="work auto-qty" onchange="handleAutoQty(this)" value="meerdiepte"> 
+                    <label>Meerdiepte (m)</label>
+                    <input type="number" class="q-input-front work-val" data-name="meerdiepte" placeholder="m">
+                </div>
+                
+                <label class="choice-item"><input type="checkbox" class="work" value="stutten"> Stutten</label>
+                
+                <div class="choice-item">
+                    <input type="checkbox" class="work auto-qty" onchange="handleAutoQty(this)" value="verv. van grond (%)"> 
+                    <label>Grondvervanging (%)</label>
+                    <input type="number" class="q-input-front work-val" data-name="verv. van grond (%)" placeholder="%">
+                </div>
+                
+                <label class="choice-item"><input type="checkbox" class="work" value="uitbreken & plaatsen boordsteen"> Uitbr/Pl. boordsteen</label>
+                
+                <div class="choice-item">
+                    <input type="checkbox" class="work auto-qty" onchange="handleAutoQty(this)" value="opbinden/verpl. Kabels"> 
+                    <label>Opbinden/Verpl. (m)</label>
+                    <input type="number" class="q-input-front work-val" data-name="opbinden/verpl. Kabels" placeholder="m">
+                </div>
+                
+                <label class="choice-item"><input type="checkbox" class="work" value="bronbemaling"> Bronbemaling</label>
+            </div>
+        </div>
+
+        <div class="card" style="background:var(--accent);">
+            <b>3. Lengte (m):</b>
+            <input type="number" id="f-len" step="0.1" style="font-size:22px; font-weight:bold;">
+        </div>
+
+        <button class="btn" style="background:#218838;" onclick="saveSleuf()">SLA OP</button>
+        <button class="btn" style="background:#666;" onclick="closeForm()">ANNULEREN</button>
+    </div>
+</div>
+
+<div id="print-area" class="print-only"></div>
+
+<script>
+    let sleuven = [];
+    let editIdx = -1;
+
+    function handleAutoQty(cb) {
+        const input = cb.parentElement.querySelector('.work-val');
+        if(cb.checked) {
+            if(!input.value) {
+                input.value = (cb.value === "verv. van grond (%)") ? "100" : "1";
+            }
+        } else {
+            input.value = "";
+        }
+    }
+
+    function toggle(el) {
+        const content = el.nextElementSibling || el.parentElement.querySelector('.content');
+        content.style.display = (content.style.display === "block") ? "none" : "block";
+    }
+
+    function toggleNext(el) {
+        const next = el.parentElement.nextElementSibling;
+        next.style.display = el.checked ? "block" : "none";
+    }
+
+    function uiSwitch() {
+        const isBoring = document.getElementById('is-boring').checked;
+        document.getElementById('wrap-boring').style.display = isBoring ? 'block' : 'none';
+        document.getElementById('wrap-werken').style.display = isBoring ? 'none' : 'block';
+    }
+
+    function openSleufForm(idx = -1) {
+        editIdx = idx;
+        const target = document.getElementById('dynamic-mats');
+        target.innerHTML = "";
+        
+        const geselecteerd = [];
+        document.querySelectorAll('#header-content input[type="checkbox"]:checked').forEach(c => {
+            if(c.value && c.value !== "on") geselecteerd.push(c.value);
+        });
+        document.querySelectorAll('.extra-text').forEach(t => {
+            if(t.value && t.style.display !== "none") geselecteerd.push(t.value);
+        });
+
+        geselecteerd.forEach(m => {
+            target.innerHTML += `<div class="choice-item"><input type="number" class="q-input-front s-qty" placeholder="0"><label>${m}</label></div>`;
+        });
+
+        if(idx > -1) {
+            const s = sleuven[idx];
+            document.getElementById('f-len').value = s.len;
+            document.getElementById('f-dia').value = s.dia;
+            if(s.surf === "Boring") document.getElementById('is-boring').checked = true;
+            document.querySelectorAll('.work').forEach(w => {
+               const workData = s.works.find(x => x.n === w.value);
+               if(workData) {
+                   w.checked = true;
+                   const valInput = w.parentElement.querySelector('.work-val');
+                   if(valInput) valInput.value = workData.v;
+               } else {
+                   w.checked = false;
+                   const valInput = w.parentElement.querySelector('.work-val');
+                   if(valInput) valInput.value = "";
+               }
+            });
+        } else {
+            document.getElementById('f-len').value = "";
+            document.getElementById('f-dia').value = "";
+            document.querySelectorAll('.work').forEach(w => w.checked = false);
+            document.querySelectorAll('.work-val').forEach(v => v.value = "");
+        }
+        uiSwitch();
+        document.getElementById('main-ui').style.display = "none";
+        document.getElementById('sleuf-form').style.display = "block";
+        window.scrollTo(0,0);
+    }
+
+    function closeForm() {
+        document.getElementById('main-ui').style.display = "block";
+        document.getElementById('sleuf-form').style.display = "none";
+    }
+
+    function saveSleuf() {
+        const s = {
+            len: document.getElementById('f-len').value,
+            surf: document.querySelector('input[name="surf"]:checked').value,
+            dia: document.getElementById('f-dia').value,
+            works: [],
+            mats: Array.from(document.querySelectorAll('.s-qty')).filter(i => i.value > 0).map(i => ({ n: i.nextElementSibling.innerText, q: i.value }))
+        };
+
+        document.querySelectorAll('.work:checked').forEach(w => {
+            const input = w.parentElement.querySelector('.work-val');
+            s.works.push({ n: w.value, v: input ? (input.value || "1") : "1" });
+        });
+
+        if(!s.len) return alert("Vul lengte in");
+        if(editIdx > -1) sleuven[editIdx] = s; else sleuven.push(s);
+        
+        if(sleuven.length > 0) document.getElementById('header-content').style.display = "none";
+
+        renderLijst(); renderPrint(); closeForm();
+    }
+
+    function renderLijst() {
+        const cont = document.getElementById('sleuven-lijst');
+        cont.innerHTML = sleuven.length > 0 ? "<h2>Overzicht Sleuven</h2>" : "";
+        sleuven.forEach((s, i) => {
+            cont.innerHTML += `<div class="sleuf-balk" onclick="openSleufForm(${i})">A-${(i+1).toString().padStart(2,'0')} | ${s.len}m | ${s.surf}<span>BEWERK</span></div>`;
+        });
+    }
+
+    function renderPrint() {
+        const usedMats = [...new Set(sleuven.flatMap(s => s.mats.map(m => m.n)))];
+        const rows = ["berm", "losse bestrating", "bitumen/cementbeton", "Boring <= Ø......mm", "uitbraak & Definitief herstel", "uitbraak & Voorlopig / Zonder herstel", "bijkomende fundering Stab / M.Bet", "meerdiepte", "stutten", "verv. van grond (%)", "uitbreken & plaatsen boordsteen", "opbinden/verpl. Kabels", "bronbemaling", ...usedMats];
+
+        let h = `<div class="header-box">
+            <div><b>DNW:</b> ${document.getElementById('dnw').value}<br><b>Start:</b> ${document.getElementById('s-datum').value}<br><b>Startverg:</b> ${document.getElementById('c-start').checked?'JA':'NEE'}</div>
+            <div><b>Aannemer:</b> ${document.getElementById('aannemer').value}<br><b>Opmeting:</b> ${document.getElementById('o-datum').value}<br><b>Veiligheid:</b> ${document.getElementById('c-veilig').checked?'JA':'NEE'}</div>
+            <div><b>Piloot:</b> ${document.getElementById('piloot').value}<br><b>Plaats:</b> ${document.getElementById('plaats').value}</div>
+        </div><table><tr><th class="row-label">Omschrijving</th>`;
+        for(let i=1; i<=30; i++) h += `<th>A-${i.toString().padStart(2,'0')}</th>`;
+        h += `</tr>`;
+
+        rows.forEach(r => {
+            h += `<tr><td class="row-label">${r}</td>`;
+            for(let i=0; i<30; i++) {
+                let v = "";
+                if(sleuven[i]) {
+                    const s = sleuven[i];
+                    if(r === s.surf) v = s.len;
+                    if(r.includes("Boring") && s.surf === "Boring") v = s.dia ? "Ø"+s.dia : s.len;
+                    let w = s.works.find(x => x.n === r); if(w) v = w.v;
+                    let m = s.mats.find(x => x.n === r); if(m) v = m.q;
+                }
+                h += `<td>${v}</td>`;
+            }
+            h += `</tr>`;
+        });
+        document.getElementById('print-area').innerHTML = h + "</table>";
+    }
+</script>
+</body>
+</html>
