@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fluvius Pro V44</title>
+    <title>Fluvius Pro v4.4</title>
     
     <link rel="icon" type="image/jpeg" href="Opname.jpeg">
     <link rel="apple-touch-icon" href="Opname.jpeg">
@@ -53,13 +53,15 @@
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { border: 0.5pt solid black; font-size: 5pt; height: 12pt; text-align: center; }
         
-        /* Zebralijnen voor print */
         tr:nth-child(even) td { 
             background-color: #e9ecef !important; 
             -webkit-print-color-adjust: exact; 
         }
         
         .row-label { text-align: left; width: 140px; font-weight: bold; padding-left: 2px; background: #d1d9e0 !important; -webkit-print-color-adjust: exact; }
+        
+        /* De dikke scheidingslijnen voor print */
+        .section-divider td { border-bottom: 2pt solid black !important; }
     }
     .print-only { display: none; }
 </style>
@@ -274,7 +276,6 @@
         document.getElementById('wrap-werken').style.display = isBoring ? 'none' : 'block';
     }
 
-    // Nieuwe hulpfunctie voor de stepper knoppen
     function changeStep(btn, delta) {
         const input = btn.parentElement.querySelector('.s-qty');
         let val = parseInt(input.value) || 0;
@@ -296,7 +297,6 @@
         });
 
         geselecteerd.forEach(m => {
-            // Aangepast naar stepper-systeem
             target.innerHTML += `
                 <div class="choice-item">
                     <div class="stepper">
@@ -313,12 +313,10 @@
             document.getElementById('f-len').value = s.len;
             document.getElementById('f-dia').value = s.dia;
             
-            // Check de juiste radio button
             document.querySelectorAll('input[name="surf"]').forEach(r => {
                 if(r.value === s.surf) r.checked = true;
             });
 
-            // Vul de steppers in voor bestaande sleuf
             s.mats.forEach(mat => {
                 const labels = target.querySelectorAll('label');
                 labels.forEach(l => {
@@ -345,7 +343,6 @@
             document.getElementById('f-dia').value = "";
             document.querySelectorAll('.work').forEach(w => w.checked = false);
             document.querySelectorAll('.work-val').forEach(v => v.value = "");
-            // Reset radio to berm
             document.querySelector('input[name="surf"][value="berm"]').checked = true;
         }
         uiSwitch();
@@ -401,8 +398,14 @@
         for(let i=1; i<=30; i++) h += `<th>A-${i.toString().padStart(2,'0')}</th>`;
         h += `</tr>`;
 
-        rows.forEach(r => {
-            h += `<tr><td class="row-label">${r}</td>`;
+        rows.forEach((r, idx) => {
+            // Logica voor scheidingslijnen op basis van de rij-naam
+            let dividerClass = "";
+            if (r === "bitumen/cementbeton") dividerClass = "section-divider"; // Na bestrating
+            if (r === "Boring <= Ø......mm") dividerClass = "section-divider"; // Na boring
+            if (r === "bronbemaling") dividerClass = "section-divider"; // Na de werken (voor materialen)
+
+            h += `<tr class="${dividerClass}"><td class="row-label">${r}</td>`;
             for(let i=0; i<30; i++) {
                 let v = "";
                 if(sleuven[i]) {
