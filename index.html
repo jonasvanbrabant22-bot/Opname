@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fluvius Pro v4.4</title>
-    
-    <link rel="icon" type="image/jpeg" href="Opname.jpeg">
-    <link rel="apple-touch-icon" href="Opname.jpeg">
-
+    <title>Fluvius P
     <style>
     :root { --fluvius: #005496; --accent: #ffcc00; --bg: #f0f4f8; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -18,7 +14,9 @@
     h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: #333; display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 10px; border-radius: 8px; cursor: pointer; }
 
     .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background: #fff; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background: #fff; }
+    textarea { resize: vertical; }
     label { font-size: 0.75rem; font-weight: bold; color: #555; margin-bottom: 2px; display: block; }
 
     .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; background: #e9ecef; padding: 10px; border-radius: 8px; }
@@ -35,9 +33,11 @@
     .stepper input { width: 40px; border: none; text-align: center; font-weight: bold; padding: 0; font-size: 1rem; }
 
     .content { display: none; padding: 5px 0; }
-    .btn { background: var(--fluvius); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; }
+    .btn { background: var(--fluvius); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 1rem; margin-top: 10px; cursor: pointer; }
     
-    .q-input-front { width: 60px; height: 35px; text-align: center; font-weight: bold; border: 2px solid var(--fluvius); border-radius: 6px; flex-shrink: 0; }
+    .q-input-front { width: 70px; height: 38px; text-align: center; font-weight: bold; border: 2px solid var(--fluvius); border-radius: 6px; flex-shrink: 0; padding: 4px; font-size: 15px; }
+    .q-input-front.zero-marked { background: #c8f7c5 !important; border-color: #27ae60 !important; }
+
     .sleuf-balk { 
         background: var(--fluvius); color: white; padding: 15px; border-radius: 10px; 
         margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;
@@ -45,34 +45,77 @@
 
     .sub-section { margin-left: 10px; border-left: 2px solid #ddd; padding-left: 10px; margin-bottom: 10px; }
 
+    /* Overzichtskaarten op startscherm */
+    .overzicht-card { background: white; border-radius: 10px; margin-bottom: 6px; border: 1px solid #d1d9e0; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .overzicht-card-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+    .overzicht-card-header .badge { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; }
+    .overzicht-card-header .edit-tag { font-size: 0.72rem; font-weight: normal; opacity: 0.85; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; padding: 2px 7px; }
+    .overzicht-card-body { padding: 0 14px 10px; font-size: 0.78rem; color: #444; border-top: 1px solid #eee; padding-top: 8px; }
+    .overzicht-sectie-titel { font-size: 0.72rem; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 2px; }
+    .overzicht-tag { display: inline-block; background: #e9f2fb; color: #005496; border-radius: 4px; padding: 2px 7px; font-size: 0.75rem; margin: 2px 2px 2px 0; }
+
+    /* Meerwerken subsectie headers */
+    .mw-subhead { background: #005496; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 0.82rem; margin: 10px 0 6px; }
+    .mw-subhead-inner { background: #2980b9; color: white; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 0.78rem; margin: 6px 0 4px; }
+
+    /* Signature pads */
+    .sig-pad-wrap { margin-bottom: 14px; }
+    .sig-pad-label { font-weight: bold; font-size: 0.85rem; margin-bottom: 4px; color: #005496; }
+    canvas.sig-canvas { border: 2px solid #005496; border-radius: 8px; background: #fff; touch-action: none; width: 100%; height: 120px; display: block; }
+    .sig-clear-btn { background: #e74c3c; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; margin-top: 4px; cursor: pointer; }
+
     @media print {
         .no-print { display: none !important; }
         .print-only { display: block !important; }
-        body { background: white; padding: 0; }
-        .header-box { border: 1pt solid black; padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7pt; margin-bottom: 5px; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 0.5pt solid black; font-size: 5pt; height: 12pt; text-align: center; }
-        
-        tr:nth-child(even) td { 
-            background-color: #e9ecef !important; 
-            -webkit-print-color-adjust: exact; 
-        }
-        
-        .row-label { text-align: left; width: 140px; font-weight: bold; padding-left: 2px; background: #d1d9e0 !important; -webkit-print-color-adjust: exact; }
-        
-        /* De dikke scheidingslijnen voor print */
+        body { background: white; padding: 0; margin: 0; }
+
+        /* === PAGINA 1 STIJLEN === */
+        .header-box { border: 1pt solid black; padding: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7pt; margin-bottom: 4px; }
+        table.p1-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 5pt; }
+        table.p1-table th, table.p1-table td { border: 0.5pt solid black; height: 11pt; text-align: center; padding: 1px; }
+        table.p1-table tr:nth-child(even) td { background-color: #e9ecef !important; -webkit-print-color-adjust: exact; }
+        .row-label { text-align: left !important; width: 110px; font-weight: bold; padding-left: 2px !important; background: #d1d9e0 !important; -webkit-print-color-adjust: exact; }
         .section-divider td { border-bottom: 2pt solid black !important; }
+        .logo-cell { width: 60px; background: white !important; }
+        .logo-img { width: 55px; }
+        .group-label-cell { text-align: left !important; font-weight: bold; font-size: 5pt; background: #c8d8e8 !important; -webkit-print-color-adjust: exact; padding-left: 2px !important; }
+
+        /* === PAGINA 2 STIJLEN === */
+        .p2-wrap { page-break-before: always; font-size: 7pt; }
+        .p2-header { border: 1pt solid black; padding: 5px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7pt; margin-bottom: 4px; }
+        .p2-body { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .p2-col {}
+        .p2-block { margin-bottom: 5px; }
+        .p2-block-title { font-weight: bold; font-size: 6.5pt; background: #d1d9e0 !important; -webkit-print-color-adjust: exact; border: 0.5pt solid black; padding: 2px 4px; }
+        .p2-block-subtitle { font-weight: bold; font-size: 6pt; background: #e8f0f8 !important; -webkit-print-color-adjust: exact; border: 0.5pt solid black; border-top: none; padding: 1px 4px; }
+        .p2-tbl { width: 100%; border-collapse: collapse; font-size: 6pt; }
+        .p2-tbl td { border: 0.5pt solid black; padding: 1px 3px; height: 10pt; }
+        .p2-tbl td.qty { width: 30px; text-align: center; }
+        .p2-tbl td.zero-print { background: #c8f7c5 !important; -webkit-print-color-adjust: exact; }
+        .p2-opmerkingen { border: 0.5pt solid black; min-height: 50pt; padding: 3px; font-size: 6pt; }
+        .p2-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 5px; }
+        .p2-sig-box { border: 0.5pt solid black; padding: 3px; }
+        .p2-sig-name { font-weight: bold; font-size: 7pt; margin-bottom: 2px; }
+        .p2-sig-img { max-width: 100%; max-height: 45pt; }
+        .p2-sig-empty { height: 45pt; display: block; }
+        .p2-ref-row { font-size: 5.5pt; color: #555; border-top: 0.5pt solid #ccc; margin-top: 2px; padding-top: 1px; }
     }
     .print-only { display: none; }
-</style>
+    </style>
 </head>
 <body>
 
+<!-- ============================================================ -->
+<!-- BESTAANDE UI (ONGEWIJZIGD)                                   -->
+<!-- ============================================================ -->
 <div class="no-print">
     <div id="main-ui">
         <div class="card" id="header-card">
-            <h2 onclick="toggle(this.parentElement)">1. Project & Nutsbedrijven (Tik om te openen)</h2>
-            <div class="content" id="header-content" style="display: block;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:3px solid var(--accent); padding-bottom:5px;">
+                <span style="font-size:0.95rem; color:var(--fluvius); font-weight:bold;">1. Project & Nutsbedrijven</span>
+                <button onclick="toggleHeader()" id="header-toggle-btn" style="background:var(--fluvius);color:white;border:none;padding:4px 12px;border-radius:6px;font-size:0.8rem;cursor:pointer;">Verberg ▲</button>
+            </div>
+            <div id="header-content" style="display: block;">
                 <div class="grid-inputs">
                     <div><label>DNW</label><input type="text" id="dnw" value=""></div>
                     <div><label>Piloot</label><input type="text" id="piloot" value="Fluvius"></div>
@@ -169,9 +212,21 @@
 
         <div id="sleuven-lijst"></div>
         <button class="btn" style="background:#28a745;" onclick="openSleufForm()">+ VOEG NIEUWE SLEUF TOE</button>
-        <button class="btn" style="background:#000; margin-top:20px;" onclick="window.print()">GENEREER PDF</button>
+
+        <div id="putten-lijst"></div>
+        <button class="btn" style="background:#6f42c1; margin-top:8px;" onclick="openPutForm()">+ VOEG PUT TOE</button>
+
+        <div id="meerwerken-samenvatting"></div>
+        <button class="btn" style="background:#e67e22; margin-top:8px;" onclick="openMeerwerkenForm()">+ VOEG MEERWERKEN TOE</button>
+
+        <div id="opmerkingen-samenvatting"></div>
+        <button class="btn" style="background:#16a085; margin-top:8px;" onclick="openOpmerkingForm()">+ OPMERKINGEN</button>
+
+        <button class="btn" style="background:#c0392b; margin-top:8px;" onclick="openHandtekeningForm()">✍️ HANDTEKENINGEN</button>
+        <button class="btn" style="background:#000; margin-top:20px;" onclick="doPrint()">📄 GENEREER PDF (ALLE PAGINA'S)</button>
     </div>
 
+    <!-- ===================== SLEUF FORM (ONGEWIJZIGD) ===================== -->
     <div id="sleuf-form" class="card" style="display:none;">
         <h2 id="form-title">Nieuwe Sleuf</h2>
         
@@ -241,186 +296,1101 @@
         <button class="btn" style="background:#218838;" onclick="saveSleuf()">SLA OP</button>
         <button class="btn" style="background:#666;" onclick="closeForm()">ANNULEREN</button>
     </div>
+
+    <!-- ===================== PUT FORM ===================== -->
+    <div id="put-form" class="card" style="display:none;">
+        <h2 id="put-form-title">Nieuwe Put</h2>
+
+        <!-- Maatschappij -->
+        <div class="card">
+            <b>Maatschappij:</b>
+            <div class="grid-inputs" style="margin-top:6px;">
+                <label class="choice-item"><input type="radio" name="put-mij" value="Fluvius" checked> Fluvius</label>
+                <label class="choice-item"><input type="radio" name="put-mij" value="Proximus"> Proximus</label>
+                <label class="choice-item"><input type="radio" name="put-mij" value="Wyre"> Wyre</label>
+                <label class="choice-item"><input type="radio" name="put-mij" value="Drinkwater"> Drinkwater</label>
+                <label class="choice-item"><input type="radio" name="put-mij" value="Andere"> Andere</label>
+            </div>
+        </div>
+
+        <!-- Activiteit vrije tekst -->
+        <div class="card">
+            <b>Activiteit / Omschrijving:</b>
+            <input type="text" id="put-act" placeholder="Vrije omschrijving van de activiteit..." style="margin-top:8px;">
+        </div>
+
+        <!-- Grondvervanging -->
+        <div class="card">
+            <b>Grondvervanging:</b>
+            <div class="grid-inputs" style="margin-top:6px;">
+                <label class="choice-item"><input type="radio" name="put-grond" value="Nee" checked> Nee</label>
+                <label class="choice-item"><input type="radio" name="put-grond" value="Ja"> Ja</label>
+            </div>
+        </div>
+
+        <!-- Put afmetingen -->
+        <div class="card">
+            <b>Afmetingen put (m):</b>
+            <div class="grid-3" style="margin-top:8px;">
+                <div><label>Lengte (m)</label><input type="number" id="put-len" step="0.1" placeholder="m"></div>
+                <div><label>Breedte (m)</label><input type="number" id="put-breedte" step="0.1" placeholder="m"></div>
+                <div><label>Diepte (m)</label><input type="number" id="put-diepte" step="0.1" placeholder="m"></div>
+            </div>
+        </div>
+
+        <!-- Bestrating -->
+        <div class="card">
+            <b>Bestrating:</b>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                <label class="choice-item"><input type="radio" name="put-best" value="berm" checked onchange="toggleBestratingAfm()"> Berm</label>
+                <label class="choice-item"><input type="radio" name="put-best" value="losse bestrating" onchange="toggleBestratingAfm()"> Losse bestrating</label>
+                <label class="choice-item"><input type="radio" name="put-best" value="bitumen/cementbeton" onchange="toggleBestratingAfm()"> Bitumen / Cementbeton</label>
+            </div>
+            <!-- Afmetingen bestrating: alleen bij losse bestrating / bitumen -->
+            <div id="bestrating-afm" style="display:none; margin-top:10px; background:#f0f4f8; padding:10px; border-radius:8px;">
+                <b style="font-size:0.8rem;">Afmetingen bestrating (m):</b>
+                <div class="grid-inputs" style="margin-top:6px;">
+                    <div><label>Lengte (m)</label><input type="number" id="put-best-l" step="0.1" placeholder="m"></div>
+                    <div><label>Breedte (m)</label><input type="number" id="put-best-b" step="0.1" placeholder="m"></div>
+                </div>
+                <button type="button" style="background:#aaa; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; margin-top:2px;" onclick="overneemPutAfm()">↓ Overnemen van put-afmetingen</button>
+            </div>
+        </div>
+
+        <button class="btn" style="background:#6f42c1;" onclick="savePut()">SLA PUT OP</button>
+        <button class="btn" style="background:#666;" onclick="closePutForm()">ANNULEREN</button>
+    </div>
+
+    <!-- ===================== MEERWERKEN FORM ===================== -->
+    <div id="meerwerken-form" class="card" style="display:none;">
+        <h2>Meerwerken</h2>
+
+        <!-- WERKEN FLUVIUS -->
+        <div class="mw-subhead">Werken Fluvius</div>
+
+        <div class="mw-subhead-inner">OV</div>
+        <div id="mw-ov" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;">
+            <!-- OV items injected by JS -->
+        </div>
+
+        <div class="mw-subhead-inner">LS</div>
+        <div id="mw-ls" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <div class="mw-subhead-inner">MS</div>
+        <div id="mw-ms" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <div class="mw-subhead-inner">Gas</div>
+        <div id="mw-gas" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- SIGNALISATIE -->
+        <div class="mw-subhead">Signalisatie</div>
+        <div id="mw-signalisatie" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- WERKEN -->
+        <div class="mw-subhead">Werken</div>
+        <div id="mw-werken" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- GRONDWERKEN -->
+        <div class="mw-subhead">Grondwerken</div>
+        <div id="mw-grondwerken" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- GPS METING -->
+        <div class="mw-subhead">GPS Meting</div>
+        <div id="mw-gps" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- BUIZEN -->
+        <div class="mw-subhead">Buizen</div>
+        <div id="mw-buizen" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <!-- KASTEN -->
+        <div class="mw-subhead">Kasten</div>
+        <div id="mw-kasten" style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;"></div>
+
+        <button class="btn" style="background:#e67e22;" onclick="saveMeerwerken()">SLA MEERWERKEN OP</button>
+        <button class="btn" style="background:#666;" onclick="closeMeerwerkenForm()">ANNULEREN</button>
+    </div>
+
+    <!-- ===================== OPMERKINGEN FORM ===================== -->
+    <div id="opmerking-form" class="card" style="display:none;">
+        <h2>Opmerkingen</h2>
+        <textarea id="opmerking-tekst" rows="8" placeholder="Vrije opmerkingen..."></textarea>
+        <button class="btn" style="background:#16a085;" onclick="saveOpmerking()">SLA OPMERKINGEN OP</button>
+        <button class="btn" style="background:#666;" onclick="closeOpmerkingForm()">ANNULEREN</button>
+    </div>
+
+    <!-- ===================== HANDTEKENING FORM ===================== -->
+    <div id="handtekening-form" class="card" style="display:none;">
+        <h2>Handtekeningen</h2>
+        <p style="font-size:0.82rem; color:#555; margin-bottom:10px;">Fluvius en Aannemer tekenen altijd. Andere partijen op basis van geselecteerde leidingen.</p>
+        <div id="sig-blocks-container"></div>
+        <button class="btn" style="background:#c0392b;" onclick="saveHandtekeningen()">OPSLAAN</button>
+        <button class="btn" style="background:#666; margin-top:6px;" onclick="closeHandtekeningForm()">ANNULEREN</button>
+    </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- PRINT AREAS                                                  -->
+<!-- ============================================================ -->
 <div id="print-area" class="print-only"></div>
+<div id="print-area-p2" class="print-only"></div>
 
 <script>
-    let sleuven = [];
-    let editIdx = -1;
+// ================================================================
+// BESTAANDE CODE (ONGEWIJZIGD)
+// ================================================================
+let sleuven = [];
+let editIdx = -1;
 
-    function handleAutoQty(cb) {
-        const input = cb.parentElement.querySelector('.work-val');
-        if(cb.checked) {
-            if(!input.value) {
-                input.value = (cb.value === "verv. van grond (%)") ? "100" : "1";
-            }
-        } else {
-            input.value = "";
+function toggleHeader() {
+    const content = document.getElementById('header-content');
+    const btn = document.getElementById('header-toggle-btn');
+    const isOpen = content.style.display !== 'none';
+    content.style.display = isOpen ? 'none' : 'block';
+    btn.textContent = isOpen ? 'Toon ▼' : 'Verberg ▲';
+}
+
+function handleAutoQty(cb) {
+    const input = cb.parentElement.querySelector('.work-val');
+    if(cb.checked) {
+        if(!input.value) {
+            input.value = (cb.value === "verv. van grond (%)") ? "100" : "1";
         }
+    } else {
+        input.value = "";
     }
+}
 
-    function toggle(el) {
-        const content = el.nextElementSibling || el.parentElement.querySelector('.content');
-        content.style.display = (content.style.display === "block") ? "none" : "block";
-    }
+function toggle(el) {
+    const content = el.nextElementSibling || el.parentElement.querySelector('.content');
+    content.style.display = (content.style.display === "block") ? "none" : "block";
+}
 
-    function toggleNext(el) {
-        const next = el.parentElement.nextElementSibling;
-        next.style.display = el.checked ? "block" : "none";
-    }
+function toggleNext(el) {
+    const next = el.parentElement.nextElementSibling;
+    next.style.display = el.checked ? "block" : "none";
+}
 
-    function uiSwitch() {
-        const isBoring = document.getElementById('is-boring').checked;
-        document.getElementById('wrap-boring').style.display = isBoring ? 'block' : 'none';
-        document.getElementById('wrap-werken').style.display = isBoring ? 'none' : 'block';
-    }
+function uiSwitch() {
+    const isBoring = document.getElementById('is-boring').checked;
+    document.getElementById('wrap-boring').style.display = isBoring ? 'block' : 'none';
+    document.getElementById('wrap-werken').style.display = isBoring ? 'none' : 'block';
+}
 
-    function changeStep(btn, delta) {
-        const input = btn.parentElement.querySelector('.s-qty');
-        let val = parseInt(input.value) || 0;
-        val = Math.max(0, val + delta);
-        input.value = val;
-    }
+function changeStep(btn, delta) {
+    const input = btn.parentElement.querySelector('.s-qty');
+    let val = parseInt(input.value) || 0;
+    val = Math.max(0, val + delta);
+    input.value = val;
+}
 
-    function openSleufForm(idx = -1) {
-        editIdx = idx;
-        const target = document.getElementById('dynamic-mats');
-        target.innerHTML = "";
+function openSleufForm(idx = -1) {
+    editIdx = idx;
+    const target = document.getElementById('dynamic-mats');
+    target.innerHTML = "";
+    
+    const geselecteerd = [];
+    document.querySelectorAll('#header-content input[type="checkbox"]:checked').forEach(c => {
+        if(c.value && c.value !== "on") geselecteerd.push(c.value);
+    });
+    document.querySelectorAll('.extra-text').forEach(t => {
+        if(t.value && t.style.display !== "none") geselecteerd.push(t.value);
+    });
+
+    geselecteerd.forEach(m => {
+        target.innerHTML += `
+            <div class="choice-item">
+                <div class="stepper">
+                    <button onclick="changeStep(this, -1)">-</button>
+                    <input type="number" class="s-qty" value="0" readonly>
+                    <button onclick="changeStep(this, 1)">+</button>
+                </div>
+                <label style="margin-left:10px;">${m}</label>
+            </div>`;
+    });
+
+    if(idx > -1) {
+        const s = sleuven[idx];
+        document.getElementById('f-len').value = s.len;
+        document.getElementById('f-dia').value = s.dia;
         
-        const geselecteerd = [];
-        document.querySelectorAll('#header-content input[type="checkbox"]:checked').forEach(c => {
-            if(c.value && c.value !== "on") geselecteerd.push(c.value);
-        });
-        document.querySelectorAll('.extra-text').forEach(t => {
-            if(t.value && t.style.display !== "none") geselecteerd.push(t.value);
+        document.querySelectorAll('input[name="surf"]').forEach(r => {
+            if(r.value === s.surf) r.checked = true;
         });
 
-        geselecteerd.forEach(m => {
-            target.innerHTML += `
-                <div class="choice-item">
-                    <div class="stepper">
-                        <button onclick="changeStep(this, -1)">-</button>
-                        <input type="number" class="s-qty" value="0" readonly>
-                        <button onclick="changeStep(this, 1)">+</button>
-                    </div>
-                    <label style="margin-left:10px;">${m}</label>
-                </div>`;
-        });
-
-        if(idx > -1) {
-            const s = sleuven[idx];
-            document.getElementById('f-len').value = s.len;
-            document.getElementById('f-dia').value = s.dia;
-            
-            document.querySelectorAll('input[name="surf"]').forEach(r => {
-                if(r.value === s.surf) r.checked = true;
+        s.mats.forEach(mat => {
+            const labels = target.querySelectorAll('label');
+            labels.forEach(l => {
+                if(l.innerText === mat.n) {
+                    l.parentElement.querySelector('.s-qty').value = mat.q;
+                }
             });
-
-            s.mats.forEach(mat => {
-                const labels = target.querySelectorAll('label');
-                labels.forEach(l => {
-                    if(l.innerText === mat.n) {
-                        l.parentElement.querySelector('.s-qty').value = mat.q;
-                    }
-                });
-            });
-
-            document.querySelectorAll('.work').forEach(w => {
-               const workData = s.works.find(x => x.n === w.value);
-               if(workData) {
-                   w.checked = true;
-                   const valInput = w.parentElement.querySelector('.work-val');
-                   if(valInput) valInput.value = workData.v;
-               } else {
-                   w.checked = false;
-                   const valInput = w.parentElement.querySelector('.work-val');
-                   if(valInput) valInput.value = "";
-               }
-            });
-        } else {
-            document.getElementById('f-len').value = "";
-            document.getElementById('f-dia').value = "";
-            document.querySelectorAll('.work').forEach(w => w.checked = false);
-            document.querySelectorAll('.work-val').forEach(v => v.value = "");
-            document.querySelector('input[name="surf"][value="berm"]').checked = true;
-        }
-        uiSwitch();
-        document.getElementById('main-ui').style.display = "none";
-        document.getElementById('sleuf-form').style.display = "block";
-        window.scrollTo(0,0);
-    }
-
-    function closeForm() {
-        document.getElementById('main-ui').style.display = "block";
-        document.getElementById('sleuf-form').style.display = "none";
-    }
-
-    function saveSleuf() {
-        const s = {
-            len: document.getElementById('f-len').value,
-            surf: document.querySelector('input[name="surf"]:checked').value,
-            dia: document.getElementById('f-dia').value,
-            works: [],
-            mats: Array.from(document.querySelectorAll('.s-qty')).filter(i => parseInt(i.value) > 0).map(i => ({ n: i.parentElement.nextElementSibling.innerText, q: i.value }))
-        };
-
-        document.querySelectorAll('.work:checked').forEach(w => {
-            const input = w.parentElement.querySelector('.work-val');
-            s.works.push({ n: w.value, v: input ? (input.value || "1") : "1" });
         });
 
-        if(!s.len) return alert("Vul lengte in");
-        if(editIdx > -1) sleuven[editIdx] = s; else sleuven.push(s);
-        
-        if(sleuven.length > 0) document.getElementById('header-content').style.display = "none";
-
-        renderLijst(); renderPrint(); closeForm();
-    }
-
-    function renderLijst() {
-        const cont = document.getElementById('sleuven-lijst');
-        cont.innerHTML = sleuven.length > 0 ? "<h2>Overzicht Sleuven</h2>" : "";
-        sleuven.forEach((s, i) => {
-            cont.innerHTML += `<div class="sleuf-balk" onclick="openSleufForm(${i})">A-${(i+1).toString().padStart(2,'0')} | ${s.len}m | ${s.surf}<span>BEWERK</span></div>`;
+        document.querySelectorAll('.work').forEach(w => {
+           const workData = s.works.find(x => x.n === w.value);
+           if(workData) {
+               w.checked = true;
+               const valInput = w.parentElement.querySelector('.work-val');
+               if(valInput) valInput.value = workData.v;
+           } else {
+               w.checked = false;
+               const valInput = w.parentElement.querySelector('.work-val');
+               if(valInput) valInput.value = "";
+           }
         });
+    } else {
+        document.getElementById('f-len').value = "";
+        document.getElementById('f-dia').value = "";
+        document.querySelectorAll('.work').forEach(w => w.checked = false);
+        document.querySelectorAll('.work-val').forEach(v => v.value = "");
+        document.querySelector('input[name="surf"][value="berm"]').checked = true;
     }
+    uiSwitch();
+    document.getElementById('main-ui').style.display = "none";
+    document.getElementById('sleuf-form').style.display = "block";
+    window.scrollTo(0,0);
+}
 
-    function renderPrint() {
-        const usedMats = [...new Set(sleuven.flatMap(s => s.mats.map(m => m.n)))];
-        const rows = ["berm", "losse bestrating", "bitumen/cementbeton", "Boring <= Ø......mm", "uitbraak & Definitief herstel", "uitbraak & Voorlopig / Zonder herstel", "bijkomende fundering Stab / M.Bet", "meerdiepte", "stutten", "verv. van grond (%)", "uitbreken & plaatsen boordsteen", "opbinden/verpl. Kabels", "bronbemaling", ...usedMats];
+function closeForm() {
+    document.getElementById('main-ui').style.display = "block";
+    document.getElementById('sleuf-form').style.display = "none";
+}
 
-        let h = `<div class="header-box">
+function saveSleuf() {
+    const s = {
+        len: document.getElementById('f-len').value,
+        surf: document.querySelector('input[name="surf"]:checked').value,
+        dia: document.getElementById('f-dia').value,
+        works: [],
+        mats: Array.from(document.querySelectorAll('.s-qty')).filter(i => parseInt(i.value) > 0).map(i => ({ n: i.parentElement.nextElementSibling.innerText, q: i.value }))
+    };
+
+    document.querySelectorAll('.work:checked').forEach(w => {
+        const input = w.parentElement.querySelector('.work-val');
+        s.works.push({ n: w.value, v: input ? (input.value || "1") : "1" });
+    });
+
+    if(!s.len) return alert("Vul lengte in");
+    if(editIdx > -1) sleuven[editIdx] = s; else sleuven.push(s);
+
+    renderLijst(); renderPrint(); closeForm();
+}
+
+function renderLijst() {
+    const cont = document.getElementById('sleuven-lijst');
+    if (!sleuven.length) { cont.innerHTML = ''; return; }
+    let html = `<div style="font-size:0.78rem; font-weight:bold; color:var(--fluvius); text-transform:uppercase; letter-spacing:0.05em; margin: 12px 0 6px 2px;">Sleuven (${sleuven.length})</div>`;
+    sleuven.forEach((s, i) => {
+        const matsStr = s.mats.map(m => m.n).join(', ');
+        html += `<div class="overzicht-card" onclick="openSleufForm(${i})">
+            <div class="overzicht-card-header" style="background:var(--fluvius); color:white;">
+                <span>A-${(i+1).toString().padStart(2,'0')} — ${s.len}m</span>
+                <span class="edit-tag">bewerk</span>
+            </div>
+            <div class="overzicht-card-body">
+                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                    <span class="overzicht-tag">🏗 ${s.surf}</span>
+                    ${s.dia ? `<span class="overzicht-tag">Ø${s.dia}mm</span>` : ''}
+                    ${s.works.map(w => `<span class="overzicht-tag" style="background:#fff3cd;color:#856404;">⚙ ${w.n}${w.v && w.v!=='1'?' ('+w.v+')':''}</span>`).join('')}
+                    ${matsStr ? `<span class="overzicht-tag" style="background:#e8f5e9;color:#2e7d32;">📦 ${matsStr}</span>` : ''}
+                </div>
+            </div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderPrint() {
+    const usedMats = [...new Set(sleuven.flatMap(s => s.mats.map(m => m.n)))];
+
+    // Rijen met artikelnummers zoals op het originele Fluvius-opmetingsblad
+    const rowDefs = [
+        { key: "berm",                                        label: "berm" },
+        { key: "losse bestrating",                            label: "losse bestrating" },
+        { key: "bitumen/cementbeton",                         label: "bitumen / cementbeton" },
+        { key: "Boring <= Ø......mm",                         label: "Boring <= Ø......mm" },
+        { key: "uitbraak & Definitief herstel",               label: "uitbraak & Definitief herstel" },
+        { key: "uitbraak & Voorlopig / Zonder herstel",       label: "uitbraak & Voorlopig / Zonder herstel" },
+        { key: "bijkomende fundering Stab / M.Bet",           label: "bijkomende fundering Stab / M.Bet" },
+        { key: "meerdiepte",                                  label: "meerdiepte" },
+        { key: "stutten",                                     label: "stutten" },
+        { key: "verv. van grond (%)",                         label: "verv. van grond (%)" },
+        { key: "uitbreken & plaatsen boordsteen",             label: "uitbreken & plaatsen boordsteen" },
+        { key: "opbinden/verpl. Kabels",                      label: "opbinden / verpl. Kabels" },
+        { key: "bronbemaling",                                label: "bronbemaling" },
+        // Fluvius materialen met artikelnummers
+        { key: "MS - PRC",      label: "MS - PRC" },
+        { key: "4G150",         label: "LS  4G150" },
+        { key: "4G240",         label: "LS  4G240" },
+        { key: "4G10",          label: "OV  4G10" },
+        { key: "GAS",           label: "GAS" },
+        // Drinkwater
+        { key: "100 - 200p",    label: "100 - 200p ……" },
+        { key: "HDPE",          label: "HDPE" },
+        { key: "SRV",           label: "SRV" },
+        // Wyre
+        { key: "Coax 20 mm",    label: "Coax 20 mm" },
+        { key: "Coax 14 mm",    label: "Coax 14 mm" },
+        { key: "Wachtbuis",     label: "Wachtbuis" },
+        { key: "DB 7",          label: "DB 7" },
+        ...usedMats.filter(m => !["MS - PRC","4G150","4G240","4G10","GAS","100 - 200p","HDPE","SRV","Coax 20 mm","Coax 14 mm","Wachtbuis","DB 7"].includes(m))
+                   .map(m => ({ key: m, label: m }))
+    ];
+
+    // Artikel-nummers per rij-key (links in de rijlabel, zoals op origineel blad)
+    const artikelNrs = {
+        "berm":                                        "",
+        "losse bestrating":                            "",
+        "bitumen/cementbeton":                         "",
+        "Boring <= Ø......mm":                         "",
+        "uitbraak & Definitief herstel":               "3004960",
+        "uitbraak & Voorlopig / Zonder herstel":       "3009111",
+        "bijkomende fundering Stab / M.Bet":           "3004789",
+        "meerdiepte":                                  "3004959",
+        "stutten":                                     "3004961",
+        "verv. van grond (%)":                         "3004927",
+        "uitbreken & plaatsen boordsteen":             "3009266",
+        "opbinden/verpl. Kabels":                      "3004644",
+        "bronbemaling":                                "3004878",
+        "MS - PRC":     "3004791",
+        "4G150":        "3009282",
+        "4G240":        "3009267",
+        "4G10":         "3009336",
+        "GAS":          "3003555",
+        "100 - 200p":   "3004790",
+        "HDPE":         "3000085",
+        "SRV":          "3004879",
+        "Coax 20 mm":   "3000017",
+        "Coax 14 mm":   "3000015",
+        "Wachtbuis":    "3000001",
+        "DB 7":         "3004886",
+    };
+
+    const COLS_PER_PAGE = 30;
+    const pages = Math.ceil(Math.max(sleuven.length, 1) / COLS_PER_PAGE);
+    let allHtml = '';
+
+    for (let page = 0; page < pages; page++) {
+        const startIdx = page * COLS_PER_PAGE;
+        const pageBreak = page > 0 ? 'page-break-before:always;' : '';
+
+        let h = `<div style="${pageBreak}">`;
+        h += `<div class="header-box">
             <div><b>DNW:</b> ${document.getElementById('dnw').value}<br><b>Start:</b> ${document.getElementById('s-datum').value}<br><b>Startverg:</b> ${document.getElementById('c-start').checked?'JA':'NEE'}</div>
             <div><b>Aannemer:</b> ${document.getElementById('aannemer').value}<br><b>Opmeting:</b> ${document.getElementById('o-datum').value}<br><b>Veiligheid:</b> ${document.getElementById('c-veilig').checked?'JA':'NEE'}</div>
             <div><b>Piloot:</b> ${document.getElementById('piloot').value}<br><b>Plaats:</b> ${document.getElementById('plaats').value}</div>
-        </div><table><tr><th class="row-label">Omschrijving</th>`;
-        for(let i=1; i<=30; i++) h += `<th>A-${i.toString().padStart(2,'0')}</th>`;
+        </div>`;
+
+        h += `<table class="p1-table"><tr><th class="row-label">Omschrijving</th><th class="row-label" style="width:52px;font-size:4pt;">Art.nr</th>`;
+        for(let i = 0; i < COLS_PER_PAGE; i++) {
+            h += `<th>A-${(startIdx+i+1).toString().padStart(2,'0')}</th>`;
+        }
         h += `</tr>`;
 
-        rows.forEach((r, idx) => {
-            // Logica voor scheidingslijnen op basis van de rij-naam
+        rowDefs.forEach(rowDef => {
+            const r = rowDef.key;
             let dividerClass = "";
-            if (r === "bitumen/cementbeton") dividerClass = "section-divider"; // Na bestrating
-            if (r === "Boring <= Ø......mm") dividerClass = "section-divider"; // Na boring
-            if (r === "bronbemaling") dividerClass = "section-divider"; // Na de werken (voor materialen)
+            if (r === "bitumen/cementbeton") dividerClass = "section-divider";
+            if (r === "Boring <= Ø......mm") dividerClass = "section-divider";
+            if (r === "bronbemaling") dividerClass = "section-divider";
 
-            h += `<tr class="${dividerClass}"><td class="row-label">${r}</td>`;
-            for(let i=0; i<30; i++) {
-                let v = "";
-                if(sleuven[i]) {
-                    const s = sleuven[i];
-                    if(r === s.surf) v = s.len;
-                    if(r.includes("Boring") && s.surf === "Boring") v = s.dia ? "Ø"+s.dia : s.len;
-                    let w = s.works.find(x => x.n === r); if(w) v = w.v;
-                    let m = s.mats.find(x => x.n === r); if(m) v = m.q;
+            const artNr = artikelNrs[r] || "";
+
+            if (r === "Boring <= Ø......mm") {
+                // Boring: twee rijen
+                // Rij 1: rijlabel = "Boring <= Ø" met per kolom de diameter, cel = lengte
+                // We bouwen de rijlabel als een cel met colspan=2 en zetten diameter PER kolom
+                // Simpelste aanpak: rijlabel toont "Boring <= Ø...mm" (statisch),
+                // in de boring-cel zetten we "Lengte\nØdia" als twee regels
+                h += `<tr class="${dividerClass}"><td class="row-label">Boring &lt;= Ø......mm</td><td style="font-size:4pt;text-align:center;background:#e8eef4;">${artNr}</td>`;
+                for(let ci = 0; ci < COLS_PER_PAGE; ci++) {
+                    const si = startIdx + ci;
+                    let v = "";
+                    if(sleuven[si] && sleuven[si].surf === "Boring") {
+                        const s = sleuven[si];
+                        // Lengte in de cel, diameter als subtext
+                        v = s.len + (s.dia ? `<br><span style="font-size:3.5pt;color:#555;">Ø${s.dia}</span>` : '');
+                    }
+                    h += `<td style="line-height:1.2;">${v}</td>`;
                 }
-                h += `<td>${v}</td>`;
+                h += `</tr>`;
+            } else {
+                h += `<tr class="${dividerClass}"><td class="row-label">${rowDef.label}</td><td style="font-size:4pt;text-align:center;background:#e8eef4;">${artNr}</td>`;
+                for(let ci = 0; ci < COLS_PER_PAGE; ci++) {
+                    const si = startIdx + ci;
+                    let v = "";
+                    if(sleuven[si]) {
+                        const s = sleuven[si];
+                        if(r === s.surf) v = s.len;
+                        let w = s.works.find(x => x.n === r); if(w) v = w.v;
+                        let m = s.mats.find(x => x.n === r); if(m) v = m.q;
+                    }
+                    h += `<td>${v}</td>`;
+                }
+                h += `</tr>`;
             }
-            h += `</tr>`;
         });
-        document.getElementById('print-area').innerHTML = h + "</table>";
+        h += `</table></div>`;
+        allHtml += h;
     }
+
+    document.getElementById('print-area').innerHTML = allHtml;
+}
+
+// ================================================================
+// NIEUWE CODE: PUTTEN
+// ================================================================
+let putten = [];
+let editPutIdx = -1;
+
+function toggleBestratingAfm() {
+    const val = document.querySelector('input[name="put-best"]:checked')?.value;
+    // Alleen afmetingen bestrating tonen bij losse bestrating of bitumen/cementbeton
+    // Bij berm: geen aparte bestratingafmetingen nodig
+    const needsAfm = val === 'losse bestrating' || val === 'bitumen/cementbeton';
+    document.getElementById('bestrating-afm').style.display = needsAfm ? 'block' : 'none';
+}
+
+function overneemPutAfm() {
+    const l = document.getElementById('put-len').value;
+    const b = document.getElementById('put-breedte').value;
+    if (l) document.getElementById('put-best-l').value = l;
+    if (b) document.getElementById('put-best-b').value = b;
+}
+
+function openPutForm(idx = -1) {
+    editPutIdx = idx;
+    document.getElementById('put-form-title').innerText = idx > -1 ? 'Put bewerken' : 'Nieuwe Put';
+    if (idx > -1) {
+        const p = putten[idx];
+        const mijR = document.querySelector(`input[name="put-mij"][value="${p.mij}"]`);
+        if (mijR) mijR.checked = true;
+        document.getElementById('put-act').value = p.act || '';
+        const grondR = document.querySelector(`input[name="put-grond"][value="${p.grond}"]`);
+        if (grondR) grondR.checked = true;
+        const bestR = document.querySelector(`input[name="put-best"][value="${p.best}"]`);
+        if (bestR) bestR.checked = true;
+        document.getElementById('put-best-l').value = p.bestL || '';
+        document.getElementById('put-best-b').value = p.bestB || '';
+        document.getElementById('put-len').value = p.len || '';
+        document.getElementById('put-breedte').value = p.breedte || '';
+        document.getElementById('put-diepte').value = p.diepte || '';
+    } else {
+        document.querySelector('input[name="put-mij"][value="Fluvius"]').checked = true;
+        document.getElementById('put-act').value = '';
+        document.querySelector('input[name="put-grond"][value="Nee"]').checked = true;
+        document.querySelector('input[name="put-best"][value="berm"]').checked = true;
+        ['put-best-l','put-best-b','put-len','put-breedte','put-diepte'].forEach(id => document.getElementById(id).value = '');
+    }
+    toggleBestratingAfm();
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('put-form').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function closePutForm() {
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('put-form').style.display = 'none';
+}
+
+function savePut() {
+    const act = document.getElementById('put-act').value.trim();
+    if (!act) return alert('Vul een activiteit in');
+    const best = document.querySelector('input[name="put-best"]:checked')?.value || 'berm';
+    const len = document.getElementById('put-len').value;
+    const breedte = document.getElementById('put-breedte').value;
+    // Bij berm: bestrating afm = put afm; bij losse/bitumen: eigen afm
+    const bestL = (best === 'berm') ? len : document.getElementById('put-best-l').value;
+    const bestB = (best === 'berm') ? breedte : document.getElementById('put-best-b').value;
+    const p = {
+        mij: document.querySelector('input[name="put-mij"]:checked')?.value || '',
+        act,
+        grond: document.querySelector('input[name="put-grond"]:checked')?.value || 'Nee',
+        best,
+        bestL,
+        bestB,
+        len,
+        breedte,
+        diepte: document.getElementById('put-diepte').value
+    };
+    if (editPutIdx > -1) putten[editPutIdx] = p; else putten.push(p);
+    renderPuttenLijst();
+    closePutForm();
+}
+
+function renderPuttenLijst() {
+    const cont = document.getElementById('putten-lijst');
+    if (!putten.length) { cont.innerHTML = ''; return; }
+    let html = `<div style="font-size:0.78rem; font-weight:bold; color:#6f42c1; text-transform:uppercase; letter-spacing:0.05em; margin: 12px 0 6px 2px;">Putten (${putten.length})</div>`;
+    putten.forEach((p, i) => {
+        const afmStr = [p.len && p.len+'m', p.breedte && p.breedte+'m', p.diepte && p.diepte+'m'].filter(Boolean).join(' × ');
+        const bestStr = p.best === 'berm' ? 'Berm' : (p.best === 'losse bestrating' ? 'Losse best.' : (p.best === 'bitumen/cementbeton' ? 'Bitumen' : p.best));
+        const bestrAfmStr = (p.best !== 'berm' && (p.bestL || p.bestB)) ? ` ${p.bestL||'?'}×${p.bestB||'?'}m` : '';
+        html += `<div class="overzicht-card" onclick="openPutForm(${i})">
+            <div class="overzicht-card-header" style="background:#6f42c1; color:white;">
+                <span>PUT ${i+1} — ${p.mij}</span>
+                <span class="edit-tag">bewerk</span>
+            </div>
+            <div class="overzicht-card-body">
+                <div style="margin-bottom:4px; font-weight:bold; color:#333;">${p.act}</div>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                    ${afmStr ? `<span class="overzicht-tag">📐 ${afmStr}</span>` : ''}
+                    <span class="overzicht-tag">🏗 ${bestStr}${bestrAfmStr}</span>
+                    <span class="overzicht-tag" style="${p.grond==='Ja'?'background:#fff3cd;color:#856404;':''}">Grondverv.: ${p.grond}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+// ================================================================
+// NIEUWE CODE: MEERWERKEN
+// ================================================================
+// Definitie van alle meerwerken-items per categorie
+const MW_ITEMS = {
+    ov: [
+        { id:'ov1', label:'OV verbind. mof' },
+        { id:'ov2', label:'Verbinden OV in cab' },
+        { id:'ov3', label:'Binnenbrengen OV/LS kabel in cabine' },
+        { id:'ov4', label:'Plaatsen kabel cat. 1 (OV, KTV,...)' }
+    ],
+    ls: [
+        { id:'ls1', label:'LS verbind. mof' },
+        { id:'ls2', label:'LS kortsluitring' },
+        { id:'ls3', label:'LS aarding' },
+        { id:'ls4', label:'LS stopmof' },
+        { id:'ls5', label:'LS eindmof + verb. LS bord (z strip)' },
+        { id:'ls6', label:'Plaatsen + verb. + afwerken LS strip' },
+        { id:'ls7', label:'Plaatsen kabel cat. 2 (LS, DBx...)' },
+        { id:'ls8', label:'Binnenbrengen LS kabel in cabine' }
+    ],
+    ms: [
+        { id:'ms1', label:'MS - PRC' },
+        { id:'ms2', label:'MS mof PRC-PRC 150/240 (stel)' },
+        { id:'ms3', label:'Binnenbrengen MS kabel in cabine' },
+        { id:'ms4', label:'Afwerken kabeleinde 240mm² (stel)' },
+        { id:'ms5', label:'4G150' },
+        { id:'ms6', label:'4G240' }
+    ],
+    gas: [
+        { id:'gas1', label:'Drukproef gas' },
+        { id:'gas2', label:'Plaatsen blaasgat (<200mm) aanleg' }
+    ],
+    signalisatie: [
+        { id:'sig1', label:'Supplement verkeerslichten' },
+        { id:'sig2', label:'Supplement extra signalisatie' },
+        { id:'sig3', label:'Lage rasters' },
+        { id:'sig4', label:'Oranje aanwijsborden F (m²)' }
+    ],
+    werken: [
+        { id:'w1', label:'Uitbr + terugpl. BS / GR' },
+        { id:'w2', label:'Sup. ingewassen bestrating' },
+        { id:'w3', label:'Afdekplaten 20 x 30' },
+        { id:'w4', label:'Stalen platen' }
+    ],
+    grondwerken: [
+        { id:'g1', label:'Uurloon werkman' },
+        { id:'g2', label:'Graafwerk per m³ (boorput)' },
+        { id:'g3', label:'Uitbraak metselwerk / beton' },
+        { id:'g4', label:'Uitbraak riolering/boomstronk' }
+    ],
+    gps: [
+        { id:'gps1', label:'GPS meting' },
+        { id:'gps2', label:'As buildplan' },
+        { id:'gps3', label:'Extra GPS punt' },
+        { id:'gps4', label:'As buildplan Lambert72 (boring)' }
+    ],
+    buizen: [
+        { id:'b1', label:'PVC-buis Ø110 (3004809)' },
+        { id:'b2', label:'PVC-buis Ø125 (3004810)' },
+        { id:'b3', label:'PVC-buis Ø160 (3004811)' }
+    ],
+    kasten: [
+        { id:'k1', label:'Pl type 2 (4 vertrekken)' },
+        { id:'k2', label:'Pl type 3 (7 vertrekken)' }
+    ]
+};
+
+let meerwerkenData = {}; // { id: { val: string } }  — actief = val niet leeg
+
+function buildMwRow(item) {
+    const saved = meerwerkenData[item.id] || {};
+    const val = saved.val !== undefined ? saved.val : '';
+    const isZero = val === '0';
+    const zeroClass = isZero ? 'zero-marked' : '';
+    return `<div class="choice-item" id="mwrow-${item.id}" style="${val ? 'background:#f0faf0;border-color:#a8d5a2;' : ''}">
+        <label style="flex:1; margin:0; font-size:0.8rem;">${item.label}</label>
+        <input type="number" class="q-input-front ${zeroClass}" id="mwval-${item.id}" 
+            value="${val}" placeholder="—" 
+            oninput="mwValInput(this, '${item.id}')">
+    </div>`;
+}
+
+function mwValInput(input, id) {
+    if (!meerwerkenData[id]) meerwerkenData[id] = {};
+    meerwerkenData[id].val = input.value;
+    // Visuele feedback: groen als ingevuld
+    const row = document.getElementById('mwrow-' + id);
+    if (input.value !== '' && input.value !== '0') {
+        row.style.background = '#f0faf0';
+        row.style.borderColor = '#a8d5a2';
+        input.classList.remove('zero-marked');
+    } else if (input.value === '0') {
+        row.style.background = '#f0fff0';
+        row.style.borderColor = '#27ae60';
+        input.classList.add('zero-marked');
+    } else {
+        row.style.background = '';
+        row.style.borderColor = '';
+        input.classList.remove('zero-marked');
+    }
+}
+
+function buildMwSection(containerId, items) {
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = items.map(buildMwRow).join('');
+}
+
+function openMeerwerkenForm() {
+    // Bouw alle secties
+    buildMwSection('mw-ov', MW_ITEMS.ov);
+    buildMwSection('mw-ls', MW_ITEMS.ls);
+    buildMwSection('mw-ms', MW_ITEMS.ms);
+    buildMwSection('mw-gas', MW_ITEMS.gas);
+    buildMwSection('mw-signalisatie', MW_ITEMS.signalisatie);
+    buildMwSection('mw-werken', MW_ITEMS.werken);
+    buildMwSection('mw-grondwerken', MW_ITEMS.grondwerken);
+    buildMwSection('mw-gps', MW_ITEMS.gps);
+    buildMwSection('mw-buizen', MW_ITEMS.buizen);
+    buildMwSection('mw-kasten', MW_ITEMS.kasten);
+
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('meerwerken-form').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function closeMeerwerkenForm() {
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('meerwerken-form').style.display = 'none';
+}
+
+function saveMeerwerken() {
+    Object.values(MW_ITEMS).flat().forEach(item => {
+        const valEl = document.getElementById('mwval-' + item.id);
+        if (valEl) meerwerkenData[item.id] = { val: valEl.value };
+    });
+    renderMeerwerkenSamenvatting();
+    closeMeerwerkenForm();
+}
+
+function renderMeerwerkenSamenvatting() {
+    const cont = document.getElementById('meerwerken-samenvatting');
+    const actief = Object.values(MW_ITEMS).flat().filter(it => meerwerkenData[it.id]?.val !== '' && meerwerkenData[it.id]?.val !== undefined);
+    if (!actief.length) { cont.innerHTML = ''; return; }
+
+    const catLabels = {
+        ov:'OV', ls:'LS', ms:'MS', gas:'Gas',
+        signalisatie:'Signalisatie', werken:'Werken', grondwerken:'Grondwerken',
+        gps:'GPS Meting', buizen:'Buizen', kasten:'Kasten'
+    };
+    let catSummary = '';
+    Object.entries(MW_ITEMS).forEach(([cat, items]) => {
+        const actInCat = items.filter(it => meerwerkenData[it.id]?.val !== '' && meerwerkenData[it.id]?.val !== undefined);
+        if (actInCat.length) {
+            catSummary += `<div class="overzicht-sectie-titel">${catLabels[cat]}</div>`;
+            catSummary += actInCat.map(it => {
+                const val = meerwerkenData[it.id]?.val;
+                const isZero = val === '0';
+                const tagStyle = isZero ? 'background:#c8f7c5;color:#1a6e34;' : '';
+                return `<span class="overzicht-tag" style="${tagStyle}">${it.label}: ${isZero ? '(later in te vullen)' : val}</span>`;
+            }).join('');
+        }
+    });
+
+    cont.innerHTML = `<div class="overzicht-card" onclick="openMeerwerkenForm()">
+        <div class="overzicht-card-header" style="background:#e67e22; color:white;">
+            <span>Meerwerken — ${actief.length} post${actief.length !== 1 ? 'en' : ''}</span>
+            <span class="edit-tag">bewerk</span>
+        </div>
+        <div class="overzicht-card-body">${catSummary}</div>
+    </div>`;
+}
+
+// ================================================================
+// NIEUWE CODE: OPMERKINGEN
+// ================================================================
+let opmerkingTekst = '';
+
+function openOpmerkingForm() {
+    document.getElementById('opmerking-tekst').value = opmerkingTekst;
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('opmerking-form').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function closeOpmerkingForm() {
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('opmerking-form').style.display = 'none';
+}
+
+function saveOpmerking() {
+    opmerkingTekst = document.getElementById('opmerking-tekst').value;
+    const cont = document.getElementById('opmerkingen-samenvatting');
+    if (opmerkingTekst.trim()) {
+        const preview = opmerkingTekst.length > 80 ? opmerkingTekst.substring(0,80)+'…' : opmerkingTekst;
+        cont.innerHTML = `<div class="overzicht-card" onclick="openOpmerkingForm()">
+            <div class="overzicht-card-header" style="background:#16a085; color:white;">
+                <span>Opmerkingen</span>
+                <span class="edit-tag">bewerk</span>
+            </div>
+            <div class="overzicht-card-body" style="font-style:italic; color:#555;">${preview.replace(/\n/g,' ')}</div>
+        </div>`;
+    } else {
+        cont.innerHTML = '';
+    }
+    closeOpmerkingForm();
+}
+
+// ================================================================
+// NIEUWE CODE: HANDTEKENINGEN
+// ================================================================
+let handtekeningen = {};
+
+function getRequiredSigners() {
+    const signers = ['Fluvius'];
+    let hasProximus = false, hasWyre = false, hasDrinkwater = false;
+    const proxVals = ['20p','50p','100p','HDPE','RSV'];
+    const wyreVals = ['Coax 14','Coax 20','Wachtbuis','DB7'];
+    const drinkVals = ['DW 80 PE','DW 80 PVC','DW 100 PE','DW 100 PVC','DW 150 PE','DW 150 PVC'];
+    document.querySelectorAll('#header-content input[type="checkbox"]:checked').forEach(c => {
+        if (proxVals.includes(c.value)) hasProximus = true;
+        if (wyreVals.includes(c.value)) hasWyre = true;
+        if (drinkVals.includes(c.value)) hasDrinkwater = true;
+    });
+    // Check proximus/wyre/drinkwater via toggled extra tekst
+    document.querySelectorAll('#header-content h3').forEach(h3 => {
+        const txt = h3.innerText.toLowerCase();
+        const cont = h3.nextElementSibling;
+        if (!cont) return;
+        const hasCb = cont.querySelector('input[type="checkbox"]:checked');
+        if (hasCb) {
+            if (txt.includes('proximus')) hasProximus = true;
+            if (txt.includes('wyre')) hasWyre = true;
+            if (txt.includes('drinkwater')) hasDrinkwater = true;
+        }
+    });
+    if (hasDrinkwater) signers.push('Drinkwater');
+    if (hasProximus) signers.push('Proximus');
+    if (hasWyre) signers.push('Wyre');
+    // Andere netbeheerder
+    const anderenaam = document.querySelector('.net-extra-naam');
+    if (anderenaam && anderenaam.value.trim()) signers.push(anderenaam.value.trim());
+    signers.push('Aannemer');
+    return signers;
+}
+
+function openHandtekeningForm() {
+    const signers = getRequiredSigners();
+    const container = document.getElementById('sig-blocks-container');
+    container.innerHTML = '';
+    signers.forEach(name => {
+        const wrap = document.createElement('div');
+        wrap.className = 'sig-pad-wrap card';
+        const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        wrap.innerHTML = `<div class="sig-pad-label">${name}</div>
+            <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Naam + Handtekening</div>
+            <canvas class="sig-canvas" id="sig-canvas-${safeId}" width="600" height="150"></canvas>
+            <button class="sig-clear-btn" onclick="clearSig('${safeId}')">Wissen</button>`;
+        container.appendChild(wrap);
+    });
+    signers.forEach(name => {
+        const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        initSigPad(safeId);
+        if (handtekeningen[name]) {
+            const canvas = document.getElementById(`sig-canvas-${safeId}`);
+            const img = new Image();
+            img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
+            img.src = handtekeningen[name];
+        }
+    });
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('handtekening-form').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function initSigPad(safeId) {
+    const canvas = document.getElementById(`sig-canvas-${safeId}`);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let drawing = false, lastX = 0, lastY = 0;
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+        if (e.touches) return [(e.touches[0].clientX - rect.left)*sx, (e.touches[0].clientY - rect.top)*sy];
+        return [(e.clientX - rect.left)*sx, (e.clientY - rect.top)*sy];
+    }
+    canvas.addEventListener('mousedown', e => { drawing = true; [lastX,lastY] = getPos(e); });
+    canvas.addEventListener('mousemove', e => {
+        if (!drawing) return;
+        const [x,y] = getPos(e);
+        ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y);
+        ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
+        [lastX,lastY]=[x,y];
+    });
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mouseleave', () => drawing = false);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; [lastX,lastY]=getPos(e); }, {passive:false});
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!drawing) return;
+        const [x,y]=getPos(e);
+        ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y);
+        ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
+        [lastX,lastY]=[x,y];
+    }, {passive:false});
+    canvas.addEventListener('touchend', () => drawing=false);
+}
+
+function clearSig(safeId) {
+    const canvas = document.getElementById(`sig-canvas-${safeId}`);
+    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveHandtekeningen() {
+    const signers = getRequiredSigners();
+    signers.forEach(name => {
+        const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        const canvas = document.getElementById(`sig-canvas-${safeId}`);
+        if (canvas) handtekeningen[name] = canvas.toDataURL();
+    });
+    closeHandtekeningForm();
+    alert('Handtekeningen opgeslagen!');
+}
+
+function closeHandtekeningForm() {
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('handtekening-form').style.display = 'none';
+}
+
+// ================================================================
+// PAGINA 2 RENDER — exact layout als originele PDF (3 kolommen, A4 liggend)
+// ================================================================
+function renderPagina2() {
+    const dnw = document.getElementById('dnw').value;
+    const aannemer = document.getElementById('aannemer').value;
+    const piloot = document.getElementById('piloot').value;
+    const plaats = document.getElementById('plaats').value;
+    const oDatum = document.getElementById('o-datum').value;
+    const sDatum = document.getElementById('s-datum').value;
+    const signers = getRequiredSigners();
+
+    // Helper: bouw een mw-tabel rij
+    function mwTr(item) {
+        const d = meerwerkenData[item.id] || {};
+        const val = d.val !== undefined ? d.val : '';
+        const isZero = val === '0';
+        const displayVal = isZero ? '' : val;
+        const bgStyle = isZero ? 'background:#c8f7c5;' : '';
+        return `<tr><td style="font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;">${item.label}</td><td style="width:28pt;text-align:center;font-size:5.5pt;padding:1px;border:0.4pt solid #999;${bgStyle}">${displayVal}</td></tr>`;
+    }
+
+    function mwTable(items) {
+        return `<table style="width:100%;border-collapse:collapse;">${items.map(mwTr).join('')}</table>`;
+    }
+
+    function secTitle(txt, color) {
+        color = color || '#d1d9e0';
+        return `<div style="background:${color};font-weight:bold;font-size:6pt;padding:2px 3px;border:0.4pt solid #999;margin-top:3pt;">${txt}</div>`;
+    }
+
+    function subTitle(txt) {
+        return `<div style="background:#e4eef6;font-weight:bold;font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;border-top:none;">${txt}</div>`;
+    }
+
+    // Handtekeningen grid — bouw op basis van signers
+    let sigHtml = '';
+    const allSigSlots = [...signers];
+    // Vul aan tot minstens 4 voor de grid
+    while (allSigSlots.length < 4) allSigSlots.push('');
+    allSigSlots.forEach(name => {
+        const imgData = name ? (handtekeningen[name] || '') : '';
+        sigHtml += `<td style="border:0.4pt solid #999;padding:3px;width:25%;vertical-align:top;">
+            <div style="font-weight:bold;font-size:6pt;">${name || 'Synergiepartner'}</div>
+            <div style="font-size:5pt;color:#666;border-bottom:0.3pt solid #ccc;margin-bottom:2pt;">Naam + Handtekening</div>
+            ${imgData ? `<img style="max-width:100%;max-height:40pt;" src="${imgData}">` : `<div style="height:40pt;"></div>`}
+            <div style="font-size:5pt;color:#666;border-top:0.3pt solid #ccc;margin-top:2pt;">Ref.nr: ___________</div>
+        </td>`;
+    });
+
+    // Putten tabel
+    const putRows = putten.length > 0 ? putten.map(p => {
+        const bestStr = p.best === 'berm' ? 'berm' : (p.best === 'losse bestrating' ? 'losse best.' : (p.best === 'bitumen/cementbeton' ? 'bitumen' : p.best));
+        const bestrLxB = (p.best !== 'berm' && (p.bestL || p.bestB)) ? `${p.bestL||''}×${p.bestB||''}` : '';
+        return `<tr>
+            <td style="font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;">${p.mij}</td>
+            <td style="font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;">${p.act}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${p.grond}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${bestStr}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${bestrLxB}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${p.len||''}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${p.breedte||''}</td>
+            <td style="font-size:5.5pt;padding:1px 2px;border:0.4pt solid #999;text-align:center;">${p.diepte||''}</td>
+        </tr>`;
+    }).join('') : Array(4).fill(`<tr>${Array(8).fill(`<td style="height:10pt;border:0.4pt solid #999;"></td>`).join('')}</tr>`).join('');
+
+    const h = `<div style="font-family:Arial,sans-serif;font-size:6pt;page-break-before:always;">
+
+    <!-- HEADER -->
+    <table style="width:100%;border-collapse:collapse;border:0.5pt solid black;margin-bottom:4pt;font-size:6.5pt;">
+        <tr>
+            <td style="padding:3px 5px;border-right:0.5pt solid black;width:33%;">
+                <b>Startverg. (3004943):</b> ${document.getElementById('c-start').checked?'☑':'☐'}&nbsp;&nbsp;
+                <b>DNW:</b> ${dnw}<br>
+                <b>Veiligheidscoörd.:</b> ${document.getElementById('c-veilig').checked?'☑':'☐'}&nbsp;&nbsp;
+                <b>Piloot:</b> ${piloot}
+            </td>
+            <td style="padding:3px 5px;border-right:0.5pt solid black;width:33%;">
+                <b>Plaats:</b> ${plaats}<br>
+                <b>Omschrijving:</b>
+            </td>
+            <td style="padding:3px 5px;width:34%;">
+                <b>Startdatum:</b> ${sDatum}<br>
+                <b>Opmeetdatum:</b> ${oDatum}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:2px 5px;border-top:0.5pt solid black;">
+                <b>Eindmeetstaat &nbsp; Aannemer:</b> ${aannemer} &nbsp;&nbsp;&nbsp; <b>Volgnummer:</b>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 3-KOLOMMEN BODY -->
+    <table style="width:100%;border-collapse:collapse;vertical-align:top;">
+    <tr style="vertical-align:top;">
+
+    <!-- KOLOM 1: Putten + Opmerkingen -->
+    <td style="width:34%;padding-right:4pt;vertical-align:top;">
+
+        ${secTitle('Putten', '#d1d9e0')}
+        <table style="width:100%;border-collapse:collapse;">
+            <tr>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 2px;border:0.4pt solid #999;">Mij</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 2px;border:0.4pt solid #999;">Activiteit</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 2px;border:0.4pt solid #999;text-align:center;">Grond</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 2px;border:0.4pt solid #999;text-align:center;">Best.</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 2px;border:0.4pt solid #999;text-align:center;">LxB</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 1px;border:0.4pt solid #999;text-align:center;">L</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 1px;border:0.4pt solid #999;text-align:center;">B</td>
+                <td style="font-weight:bold;font-size:5pt;background:#e4eef6;padding:1px 1px;border:0.4pt solid #999;text-align:center;">D</td>
+            </tr>
+            ${putRows}
+        </table>
+
+        <div style="margin-top:5pt;">${secTitle('Opmerkingen', '#d1d9e0')}</div>
+        <div style="border:0.4pt solid #999;min-height:55pt;padding:3px;font-size:5.5pt;">${(opmerkingTekst||'').replace(/\n/g,'<br>')}</div>
+
+    </td>
+
+    <!-- KOLOM 2: Werken Fluvius + Signalisatie + Werken -->
+    <td style="width:33%;padding:0 3pt;vertical-align:top;border-left:0.5pt solid #ccc;">
+
+        ${secTitle('Werken Fluvius', '#d1d9e0')}
+        ${subTitle('OV')}${mwTable(MW_ITEMS.ov)}
+        ${subTitle('LS')}${mwTable(MW_ITEMS.ls)}
+        ${subTitle('MS')}${mwTable(MW_ITEMS.ms)}
+        ${subTitle('Gas')}${mwTable(MW_ITEMS.gas)}
+
+        <div style="margin-top:4pt;">${secTitle('Signalisatie', '#d1d9e0')}</div>
+        ${mwTable(MW_ITEMS.signalisatie)}
+
+        <div style="margin-top:4pt;">${secTitle('Werken', '#d1d9e0')}</div>
+        ${mwTable(MW_ITEMS.werken)}
+
+    </td>
+
+    <!-- KOLOM 3: Grondwerken + GPS + Buizen + Kasten -->
+    <td style="width:33%;padding-left:3pt;vertical-align:top;border-left:0.5pt solid #ccc;">
+
+        ${secTitle('Grondwerken', '#d1d9e0')}
+        ${mwTable(MW_ITEMS.grondwerken)}
+
+        <div style="margin-top:4pt;">${secTitle('GPS Meting', '#d1d9e0')}</div>
+        ${mwTable(MW_ITEMS.gps)}
+
+        <div style="margin-top:4pt;">${secTitle('Buizen', '#d1d9e0')}</div>
+        ${mwTable(MW_ITEMS.buizen)}
+
+        <div style="margin-top:4pt;">${secTitle('Kasten', '#d1d9e0')}</div>
+        ${mwTable(MW_ITEMS.kasten)}
+
+    </td>
+    </tr>
+    </table>
+
+    <!-- HANDTEKENINGEN -->
+    <table style="width:100%;border-collapse:collapse;margin-top:5pt;border-top:0.5pt solid black;">
+        <tr>${sigHtml}</tr>
+    </table>
+
+    </div>`;
+
+    document.getElementById('print-area-p2').innerHTML = h;
+}
+
+
+// ================================================================
+// GENEREER PDF (BEIDE PAGINA'S) — download als bestand
+// ================================================================
+function doPrint() {
+    renderPrint();
+    renderPagina2();
+
+    const dnw = document.getElementById('dnw').value || 'opmeting';
+    const datum = document.getElementById('o-datum').value || new Date().toISOString().slice(0,10);
+    const filename = `${dnw}_${datum}.pdf`;
+
+    const p1 = document.getElementById('print-area').innerHTML;
+    const p2 = document.getElementById('print-area-p2').innerHTML;
+
+    const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        @page { margin: 8mm; size: A4 landscape; }
+        /* Pagina 1 */
+        .header-box { border: 1pt solid black; padding: 6px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7pt; margin-bottom: 4px; }
+        table.p1-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 5pt; }
+        table.p1-table th, table.p1-table td { border: 0.5pt solid black; height: 11pt; text-align: center; padding: 1px; }
+        table.p1-table tr:nth-child(even) td { background-color: #e9ecef !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .row-label { text-align: left !important; width: 105px; font-weight: bold; padding-left: 2px !important; background: #d1d9e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .section-divider td { border-bottom: 2pt solid black !important; }
+    </style>
+    </head><body>
+    <div>${p1}</div>
+    <div>${p2}</div>
+    </body></html>`;
+
+    const blob = new Blob([fullHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    const win = window.open(url, '_blank');
+    if (win) {
+        win.onload = () => {
+            setTimeout(() => {
+                win.print();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            }, 800);
+        };
+    } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename.replace('.pdf', '.html');
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        alert('Popup geblokkeerd. Sta popups toe voor dit bestand, of open het gedownloade HTML-bestand en gebruik Ctrl+P → "Opslaan als PDF".');
+    }
+}
 </script>
 </body>
 </html>
