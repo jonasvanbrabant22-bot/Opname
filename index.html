@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fluvius P
+    <title>Fluvius Pro v5.0</title>
+    
+    <link rel="icon" type="image/jpeg" href="Opname.jpeg">
+    <link rel="apple-touch-icon" href="Opname.jpeg">
+
     <style>
     :root { --fluvius: #005496; --accent: #ffcc00; --bg: #f0f4f8; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -441,6 +445,13 @@
 let sleuven = [];
 let editIdx = -1;
 
+// Stel vandaag in als standaard start- en opmeetdatum
+(function() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('o-datum').value = today;
+    document.getElementById('s-datum').value = today;
+})();
+
 function toggleHeader() {
     const content = document.getElementById('header-content');
     const btn = document.getElementById('header-toggle-btn');
@@ -603,7 +614,6 @@ function renderLijst() {
 function renderPrint() {
     const usedMats = [...new Set(sleuven.flatMap(s => s.mats.map(m => m.n)))];
 
-    // Rijen met artikelnummers zoals op het originele Fluvius-opmetingsblad
     const rowDefs = [
         { key: "berm",                                        label: "berm" },
         { key: "losse bestrating",                            label: "losse bestrating" },
@@ -618,17 +628,14 @@ function renderPrint() {
         { key: "uitbreken & plaatsen boordsteen",             label: "uitbreken & plaatsen boordsteen" },
         { key: "opbinden/verpl. Kabels",                      label: "opbinden / verpl. Kabels" },
         { key: "bronbemaling",                                label: "bronbemaling" },
-        // Fluvius materialen met artikelnummers
         { key: "MS - PRC",      label: "MS - PRC" },
         { key: "4G150",         label: "LS  4G150" },
         { key: "4G240",         label: "LS  4G240" },
         { key: "4G10",          label: "OV  4G10" },
         { key: "GAS",           label: "GAS" },
-        // Drinkwater
         { key: "100 - 200p",    label: "100 - 200p ……" },
         { key: "HDPE",          label: "HDPE" },
         { key: "SRV",           label: "SRV" },
-        // Wyre
         { key: "Coax 20 mm",    label: "Coax 20 mm" },
         { key: "Coax 14 mm",    label: "Coax 14 mm" },
         { key: "Wachtbuis",     label: "Wachtbuis" },
@@ -636,35 +643,6 @@ function renderPrint() {
         ...usedMats.filter(m => !["MS - PRC","4G150","4G240","4G10","GAS","100 - 200p","HDPE","SRV","Coax 20 mm","Coax 14 mm","Wachtbuis","DB 7"].includes(m))
                    .map(m => ({ key: m, label: m }))
     ];
-
-    // Artikel-nummers per rij-key (links in de rijlabel, zoals op origineel blad)
-    const artikelNrs = {
-        "berm":                                        "",
-        "losse bestrating":                            "",
-        "bitumen/cementbeton":                         "",
-        "Boring <= Ø......mm":                         "",
-        "uitbraak & Definitief herstel":               "3004960",
-        "uitbraak & Voorlopig / Zonder herstel":       "3009111",
-        "bijkomende fundering Stab / M.Bet":           "3004789",
-        "meerdiepte":                                  "3004959",
-        "stutten":                                     "3004961",
-        "verv. van grond (%)":                         "3004927",
-        "uitbreken & plaatsen boordsteen":             "3009266",
-        "opbinden/verpl. Kabels":                      "3004644",
-        "bronbemaling":                                "3004878",
-        "MS - PRC":     "3004791",
-        "4G150":        "3009282",
-        "4G240":        "3009267",
-        "4G10":         "3009336",
-        "GAS":          "3003555",
-        "100 - 200p":   "3004790",
-        "HDPE":         "3000085",
-        "SRV":          "3004879",
-        "Coax 20 mm":   "3000017",
-        "Coax 14 mm":   "3000015",
-        "Wachtbuis":    "3000001",
-        "DB 7":         "3004886",
-    };
 
     const COLS_PER_PAGE = 30;
     const pages = Math.ceil(Math.max(sleuven.length, 1) / COLS_PER_PAGE);
@@ -681,7 +659,7 @@ function renderPrint() {
             <div><b>Piloot:</b> ${document.getElementById('piloot').value}<br><b>Plaats:</b> ${document.getElementById('plaats').value}</div>
         </div>`;
 
-        h += `<table class="p1-table"><tr><th class="row-label">Omschrijving</th><th class="row-label" style="width:52px;font-size:4pt;">Art.nr</th>`;
+        h += `<table class="p1-table"><tr><th class="row-label">Omschrijving</th>`;
         for(let i = 0; i < COLS_PER_PAGE; i++) {
             h += `<th>A-${(startIdx+i+1).toString().padStart(2,'0')}</th>`;
         }
@@ -694,28 +672,20 @@ function renderPrint() {
             if (r === "Boring <= Ø......mm") dividerClass = "section-divider";
             if (r === "bronbemaling") dividerClass = "section-divider";
 
-            const artNr = artikelNrs[r] || "";
-
             if (r === "Boring <= Ø......mm") {
-                // Boring: twee rijen
-                // Rij 1: rijlabel = "Boring <= Ø" met per kolom de diameter, cel = lengte
-                // We bouwen de rijlabel als een cel met colspan=2 en zetten diameter PER kolom
-                // Simpelste aanpak: rijlabel toont "Boring <= Ø...mm" (statisch),
-                // in de boring-cel zetten we "Lengte\nØdia" als twee regels
-                h += `<tr class="${dividerClass}"><td class="row-label">Boring &lt;= Ø......mm</td><td style="font-size:4pt;text-align:center;background:#e8eef4;">${artNr}</td>`;
+                h += `<tr class="${dividerClass}"><td class="row-label">Boring &lt;= Ø......mm</td>`;
                 for(let ci = 0; ci < COLS_PER_PAGE; ci++) {
                     const si = startIdx + ci;
                     let v = "";
                     if(sleuven[si] && sleuven[si].surf === "Boring") {
                         const s = sleuven[si];
-                        // Lengte in de cel, diameter als subtext
                         v = s.len + (s.dia ? `<br><span style="font-size:3.5pt;color:#555;">Ø${s.dia}</span>` : '');
                     }
                     h += `<td style="line-height:1.2;">${v}</td>`;
                 }
                 h += `</tr>`;
             } else {
-                h += `<tr class="${dividerClass}"><td class="row-label">${rowDef.label}</td><td style="font-size:4pt;text-align:center;background:#e8eef4;">${artNr}</td>`;
+                h += `<tr class="${dividerClass}"><td class="row-label">${rowDef.label}</td>`;
                 for(let ci = 0; ci < COLS_PER_PAGE; ci++) {
                     const si = startIdx + ci;
                     let v = "";
@@ -850,28 +820,28 @@ function renderPuttenLijst() {
 // Definitie van alle meerwerken-items per categorie
 const MW_ITEMS = {
     ov: [
-        { id:'ov1', label:'OV verbind. mof' },
-        { id:'ov2', label:'Verbinden OV in cab' },
-        { id:'ov3', label:'Binnenbrengen OV/LS kabel in cabine' },
-        { id:'ov4', label:'Plaatsen kabel cat. 1 (OV, KTV,...)' }
+        { id:'ov1', label:'Plaatsen kabel cat. 1 (OV, KTV,...)' },
+        { id:'ov2', label:'OV verbind. mof' },
+        { id:'ov3', label:'Verbinden OV in cab' },
+        { id:'ov4', label:'Binnenbrengen OV/LS kabel in cabine' }
     ],
     ls: [
-        { id:'ls1', label:'LS verbind. mof' },
-        { id:'ls2', label:'LS kortsluitring' },
-        { id:'ls3', label:'LS aarding' },
-        { id:'ls4', label:'LS stopmof' },
-        { id:'ls5', label:'LS eindmof + verb. LS bord (z strip)' },
-        { id:'ls6', label:'Plaatsen + verb. + afwerken LS strip' },
-        { id:'ls7', label:'Plaatsen kabel cat. 2 (LS, DBx...)' },
-        { id:'ls8', label:'Binnenbrengen LS kabel in cabine' }
+        { id:'ls1', label:'Plaatsen kabel cat. 2 (LS, DBx...)' },
+        { id:'ls2', label:'LS verbind. mof' },
+        { id:'ls3', label:'LS kortsluitring' },
+        { id:'ls4', label:'LS aarding' },
+        { id:'ls5', label:'LS stopmof' },
+        { id:'ls6', label:'LS eindmof + verb. LS bord (z strip)' },
+        { id:'ls7', label:'Plaatsen + verb. + afwerken LS strip' },
+        { id:'ls8', label:'Uurloon werkman' }
     ],
     ms: [
-        { id:'ms1', label:'MS - PRC' },
-        { id:'ms2', label:'MS mof PRC-PRC 150/240 (stel)' },
-        { id:'ms3', label:'Binnenbrengen MS kabel in cabine' },
-        { id:'ms4', label:'Afwerken kabeleinde 240mm² (stel)' },
-        { id:'ms5', label:'4G150' },
-        { id:'ms6', label:'4G240' }
+        { id:'ms1', label:'Plaatsen kabel HS1<150mm² (getorst)' },
+        { id:'ms2', label:'Plaatsen kabel HS2>150mm² (getorst)' },
+        { id:'ms3', label:'Plaatsen kabel HS4>150mm² (enkel)' },
+        { id:'ms4', label:'MS mof PRC-PRC 150/240 (stel)' },
+        { id:'ms5', label:'Binnenbrengen MS kabel in cabine' },
+        { id:'ms6', label:'Afwerken kabeleinde 240mm² (stel)' }
     ],
     gas: [
         { id:'gas1', label:'Drukproef gas' },
@@ -890,21 +860,19 @@ const MW_ITEMS = {
         { id:'w4', label:'Stalen platen' }
     ],
     grondwerken: [
-        { id:'g1', label:'Uurloon werkman' },
-        { id:'g2', label:'Graafwerk per m³ (boorput)' },
-        { id:'g3', label:'Uitbraak metselwerk / beton' },
-        { id:'g4', label:'Uitbraak riolering/boomstronk' }
+        { id:'g1', label:'Graafwerk per m³ (boorput)' },
+        { id:'g2', label:'Uitbraak metselwerk / beton' },
+        { id:'g3', label:'Uitbraak riolering/boomstronk' }
     ],
     gps: [
-        { id:'gps1', label:'GPS meting' },
-        { id:'gps2', label:'As buildplan' },
-        { id:'gps3', label:'Extra GPS punt' },
-        { id:'gps4', label:'As buildplan Lambert72 (boring)' }
+        { id:'gps1', label:'As buildplan' },
+        { id:'gps2', label:'Extra GPS punt' },
+        { id:'gps3', label:'As buildplan Lambert72 (boring)' }
     ],
     buizen: [
-        { id:'b1', label:'PVC-buis Ø110 (3004809)' },
-        { id:'b2', label:'PVC-buis Ø125 (3004810)' },
-        { id:'b3', label:'PVC-buis Ø160 (3004811)' }
+        { id:'b1', label:'PVC-buis Ø110' },
+        { id:'b2', label:'PVC-buis Ø125' },
+        { id:'b3', label:'PVC-buis Ø160' }
     ],
     kasten: [
         { id:'k1', label:'Pl type 2 (4 vertrekken)' },
@@ -1185,6 +1153,59 @@ function renderPagina2() {
     const sDatum = document.getElementById('s-datum').value;
     const signers = getRequiredSigners();
 
+    // Artikelnummers per activiteit-id — volledig bevestigd
+    const p2ArtNr = {
+        // OV
+        'ov1': '3004790',  // Plaatsen kabel cat. 1 (OV, KTV,...)
+        'ov2': '3004925',  // OV verbind. mof
+        'ov3': '3004926',  // Verbinden OV in cab
+        'ov4': '3004895',  // Binnenbrengen OV/LS kabel in cabine
+        // LS
+        'ls1': '3004791',  // Plaatsen kabel cat. 2 (LS, DBx...)
+        'ls2': '3004878',  // LS verbind. mof
+        'ls3': '3004644',  // LS kortsluitring
+        'ls4': '3003167',  // LS aarding
+        'ls5': '3003166',  // LS stopmof
+        'ls6': '3004879',  // LS eindmof + verb. LS bord (z strip)
+        'ls7': '3004886',  // Plaatsen + verb. + afwerken LS strip
+        'ls8': '3000085',  // Uurloon werkman
+        // MS
+        'ms1': '3000014',  // Plaatsen kabel HS1<150mm2 (getorst)
+        'ms2': '3000015',  // Plaatsen kabel HS2>150mm2 (getorst)
+        'ms3': '3000017',  // Plaatsen kabel HS4>150mm2 (enkel)
+        'ms4': '3009345',  // MS mof PRC-PRC 150/240 (stel)
+        'ms5': '3003647',  // Binnenbrengen MS kabel in cabine
+        'ms6': '3009336',  // Afwerken kabeleinde 240mm2 (stel)
+        // GAS
+        'gas1': '3003555', // Drukproef gas
+        'gas2': '3009282', // Plaatsen blaasgat (<200mm) aanleg
+        // SIGNALISATIE
+        'sig1': '3004960', // Supplement verkeerslichten
+        'sig2': '3004959', // Supplement extra signalisatie
+        'sig3': '3004947', // Lage rasters
+        'sig4': '3004961', // Oranje aanwijsborden F (m2)
+        // WERKEN
+        'w1':  '3004789',  // Uitbr + terugpl. BS / GR
+        'w2':  '3009111',  // Sup. ingewassen bestrating
+        'w3':  '3004855',  // Afdekplaten 20 x 30
+        'w4':  '3004816',  // Stalen platen
+        // GRONDWERKEN (3 items)
+        'g1':  '3000001',  // Graafwerk per m3 (boorput)
+        'g2':  '3004890',  // Uitbraak metselwerk / beton
+        'g3':  '3009217',  // Uitbraak riolering/boomstronk
+        // GPS (3 items)
+        'gps1': '3004928', // As buildplan
+        'gps2': '3004930', // Extra GPS punt
+        'gps3': '3004927', // As buildplan Lambert72 (boring)
+        // BUIZEN
+        'b1': '3004809',   // PVC-buis 110
+        'b2': '3004810',   // PVC-buis 125
+        'b3': '3004811',   // PVC-buis 160
+        // KASTEN
+        'k1': '3009266',   // Pl type 2 (4 vertrekken)
+        'k2': '3009267',   // Pl type 3 (7 vertrekken)
+    };
+
     // Helper: bouw een mw-tabel rij
     function mwTr(item) {
         const d = meerwerkenData[item.id] || {};
@@ -1192,7 +1213,12 @@ function renderPagina2() {
         const isZero = val === '0';
         const displayVal = isZero ? '' : val;
         const bgStyle = isZero ? 'background:#c8f7c5;' : '';
-        return `<tr><td style="font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;">${item.label}</td><td style="width:28pt;text-align:center;font-size:5.5pt;padding:1px;border:0.4pt solid #999;${bgStyle}">${displayVal}</td></tr>`;
+        const artNr = p2ArtNr[item.id] || '';
+        return `<tr>
+            <td style="font-size:5pt;padding:1px 2px;border:0.4pt solid #999;color:#888;width:38pt;">${artNr}</td>
+            <td style="font-size:5.5pt;padding:1px 3px;border:0.4pt solid #999;">${item.label}</td>
+            <td style="width:22pt;text-align:center;font-size:5.5pt;padding:1px;border:0.4pt solid #999;${bgStyle}">${displayVal}</td>
+        </tr>`;
     }
 
     function mwTable(items) {
