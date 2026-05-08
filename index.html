@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Fluvius Pro v5.0</title>
     
     <link rel="icon" type="image/jpeg" href="Opname.jpeg">
@@ -11,7 +11,7 @@
     <style>
     :root { --fluvius: #005496; --accent: #ffcc00; --bg: #f0f4f8; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.4; }
+    body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.4; padding-top: max(10px, env(safe-area-inset-top)); padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
     
     .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 10px; border: 1px solid #d1d9e0; overflow: hidden; }
     h2 { font-size: 0.95rem; color: var(--fluvius); border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin: 0 0 12px 0; cursor: pointer; }
@@ -57,6 +57,52 @@
     .overzicht-card-body { padding: 0 14px 10px; font-size: 0.78rem; color: #444; border-top: 1px solid #eee; padding-top: 8px; }
     .overzicht-sectie-titel { font-size: 0.72rem; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 2px; }
     .overzicht-tag { display: inline-block; background: #e9f2fb; color: #005496; border-radius: 4px; padding: 2px 7px; font-size: 0.75rem; margin: 2px 2px 2px 0; }
+
+    /* Swipe-to-delete WIP cards */
+    .swipe-wrap { position: relative; margin-bottom: 10px; overflow: hidden; border-radius: 12px; user-select: none; -webkit-user-select: none; background: #e74c3c; }
+    .swipe-delete {
+        position: absolute; top: 0; right: 0; bottom: 0;
+        width: 130px; background: #e74c3c; color: white;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        font-weight: bold; font-size: 0.9rem; cursor: pointer;
+        z-index: 1;
+    }
+    .swipe-delete::before { content: ""; }
+    .swipe-card {
+        position: relative; z-index: 2;
+        background: var(--fluvius); color: white;
+        padding: 18px 20px; border-radius: 12px;
+        font-weight: 600; font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        touch-action: pan-y;
+        display: flex; align-items: center; justify-content: space-between;
+        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: transform;
+    }
+    .swipe-card.swiping { transition: none; }
+    .swipe-card .chevron { opacity: 0.5; font-size: 1rem; }
+    .swipe-card.open .chevron { opacity: 0; }
+
+    /* Modern compact back button */
+    .back-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: white; color: var(--fluvius);
+        border: 1px solid #d1d9e0;
+        padding: 7px 14px 7px 11px;
+        border-radius: 999px;
+        font-size: 0.82rem; font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: background 0.15s ease, transform 0.1s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:hover { background: #f5f9fc; }
+    .back-btn:active { transform: scale(0.97); }
+    .back-btn .back-arrow {
+        font-size: 1rem; line-height: 1;
+        display: inline-block;
+    }
 
     /* Meerwerken subsectie headers */
     .mw-subhead { background: #005496; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 0.82rem; margin: 10px 0 6px; }
@@ -113,7 +159,35 @@
 <!-- BESTAANDE UI (ONGEWIJZIGD)                                   -->
 <!-- ============================================================ -->
 <div class="no-print">
-    <div id="main-ui">
+
+    <!-- ===================== STARTSCHERM ===================== -->
+    <div id="start-screen">
+        <div style="text-align:center; padding:30px 10px 20px;">
+            <h1 style="color:var(--fluvius); font-size:1.6rem; margin:0 0 6px;">Fluvius Pro</h1>
+            <p style="color:#666; font-size:0.85rem; margin:0;">Opmetingen</p>
+        </div>
+
+        <button class="btn" style="background:#28a745; padding:20px; font-size:1.05rem;" onclick="startNieuweOpmeting()">
+            ➕ START NIEUWE OPMETING
+        </button>
+
+        <div id="wip-lijst"></div>
+
+        <button class="btn" style="background:#34495e; margin-top:14px; padding:18px;" onclick="openArchiefVanStart()">
+            🗂️ UITGEVOERDE OPMETINGEN
+        </button>
+    </div>
+
+    <div id="main-ui" style="display:none;">
+
+        <!-- Terug-knop bovenaan -->
+        <div style="margin-bottom:12px;">
+            <button onclick="terugNaarStart()" class="back-btn" aria-label="Terug naar startscherm">
+                <span class="back-arrow">←</span>
+                <span>Startscherm</span>
+            </button>
+        </div>
+
         <div class="card" id="header-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:3px solid var(--accent); padding-bottom:5px;">
                 <span style="font-size:0.95rem; color:var(--fluvius); font-weight:bold;">1. Project & Nutsbedrijven</span>
@@ -229,15 +303,19 @@
 
         <button class="btn" style="background:#c0392b; margin-top:8px;" onclick="openHandtekeningForm()">✍️ HANDTEKENINGEN</button>
         <button class="btn" style="background:#000; margin-top:20px;" onclick="doPrint()">📄 GENEREER PDF (ALLE PAGINA'S)</button>
-        <button class="btn" style="background:#34495e; margin-top:8px;" onclick="openArchief()">🗂️ ARCHIEF</button>
     </div>
 
     <!-- ===================== ARCHIEF ===================== -->
     <div id="archief-form" class="card" style="display:none;">
-        <h2>Archief</h2>
-        <p style="font-size:0.82rem; color:#555; margin-bottom:10px;">Hier vind je alle eerder opgeslagen opmetingen. Ze worden automatisch lokaal bewaard wanneer je een PDF genereert.</p>
+        <div style="margin-bottom:12px;">
+            <button onclick="closeArchiefNaarStart()" class="back-btn" aria-label="Terug naar startscherm">
+                <span class="back-arrow">←</span>
+                <span>Startscherm</span>
+            </button>
+        </div>
+        <h2>Uitgevoerde Opmetingen</h2>
+        <p style="font-size:0.82rem; color:#555; margin-bottom:10px;">Hier vind je alle gegenereerde opmetingen. Klik op "Openen" om een opmeting opnieuw te bekijken of aan te passen.</p>
         <div id="archief-lijst"></div>
-        <button class="btn" style="background:#666; margin-top:8px;" onclick="closeArchief()">SLUITEN</button>
     </div>
 
     <!-- ===================== SLEUF FORM (ONGEWIJZIGD) ===================== -->
@@ -1683,6 +1761,342 @@ function deleteFromArchive(idx) {
     saveArchief(list);
     renderArchiefLijst();
 }
+
+// ================================================================
+// STARTSCHERM & WIP-OPMETINGEN
+// ================================================================
+const WIP_KEY = 'fluvius_pro_wip_v1';
+let currentWipId = null; // welke WIP-opmeting we nu bewerken
+
+function getWipList() {
+    try { return JSON.parse(localStorage.getItem(WIP_KEY) || '[]'); }
+    catch (e) { return []; }
+}
+
+function saveWipList(list) {
+    try { localStorage.setItem(WIP_KEY, JSON.stringify(list)); }
+    catch (e) { console.warn('WIP opslaan mislukt:', e); }
+}
+
+function autoSaveWip() {
+    // Sla huidige opmeting op als WIP (alleen als er iets ingevuld is)
+    if (currentWipId === null) return; // niet actief
+    const snap = getCurrentSnapshot();
+    snap.id = currentWipId;
+    // Skip lege opmetingen
+    if (!snap.dnw && !snap.plaats && (snap.sleuven||[]).length === 0 && (snap.putten||[]).length === 0) {
+        return;
+    }
+    const list = getWipList();
+    const idx = list.findIndex(w => w.id === currentWipId);
+    if (idx > -1) list[idx] = snap;
+    else list.unshift(snap);
+    saveWipList(list);
+    renderCurrentLabel();
+}
+
+function renderCurrentLabel() {
+    const lbl = document.getElementById('current-opmeting-label');
+    if (!lbl) return;
+    const dnw = document.getElementById('dnw').value || '(geen DNW)';
+    const plaats = document.getElementById('plaats').value;
+    lbl.textContent = `${dnw}${plaats ? ' — ' + plaats : ''}`;
+}
+
+function startNieuweOpmeting() {
+    // Wis huidige data
+    resetForm();
+    currentWipId = Date.now();
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'block';
+    renderCurrentLabel();
+    window.scrollTo(0, 0);
+}
+
+function resetForm() {
+    // Reset alle velden
+    document.getElementById('dnw').value = '';
+    document.getElementById('piloot').value = 'Fluvius';
+    document.getElementById('plaats').value = '';
+    document.getElementById('aannemer').value = '';
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('s-datum').value = today;
+    document.getElementById('o-datum').value = today;
+    document.getElementById('c-start').checked = false;
+    document.getElementById('c-veilig').checked = false;
+    document.getElementById('c-eind').checked = false;
+    // Alle leiding-checkboxes uit
+    document.querySelectorAll('#header-content input[type="checkbox"]').forEach(c => {
+        if (c.id !== 'c-start' && c.id !== 'c-veilig' && c.id !== 'c-eind') c.checked = false;
+    });
+    // Extra tekst-velden
+    document.querySelectorAll('.extra-text').forEach(t => { t.value = ''; t.style.display = 'none'; });
+    const netNaam = document.querySelector('.net-extra-naam');
+    if (netNaam) netNaam.value = '';
+    // Data
+    sleuven = [];
+    putten = [];
+    meerwerkenData = {};
+    opmerkingTekst = '';
+    handtekeningMeta = {};
+    handtekeningen = {};
+    // UI samenvattingen
+    renderLijst();
+    renderPuttenLijst();
+    renderMeerwerkenSamenvatting();
+    document.getElementById('opmerkingen-samenvatting').innerHTML = '';
+    // Header openzetten
+    document.getElementById('header-content').style.display = 'block';
+    document.getElementById('header-toggle-btn').textContent = 'Verberg ▲';
+}
+
+function terugNaarStart() {
+    autoSaveWip();
+    currentWipId = null;
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'block';
+    renderStartScreen();
+    window.scrollTo(0, 0);
+}
+
+function openWip(id) {
+    const list = getWipList();
+    const wip = list.find(w => w.id === id);
+    if (!wip) return alert('Opmeting niet gevonden');
+    loadSnapshot(wip);
+    currentWipId = id;
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'block';
+    renderCurrentLabel();
+    window.scrollTo(0, 0);
+}
+
+function deleteWip(id, ev) {
+    if (ev) ev.stopPropagation();
+    const list = getWipList();
+    const wip = list.find(w => w.id === id);
+    if (!wip) return;
+    if (!confirm(`Verwijderen: ${wip.dnw || ''} - ${wip.plaats || ''}?\nDeze opmeting werd nog niet gegenereerd en zal volledig verloren gaan.`)) return;
+    saveWipList(list.filter(w => w.id !== id));
+    renderStartScreen();
+}
+
+function renderStartScreen() {
+    const cont = document.getElementById('wip-lijst');
+    const list = getWipList();
+    if (!list.length) { cont.innerHTML = ''; return; }
+
+    let html = `<div style="font-size:0.78rem; font-weight:bold; color:#555; text-transform:uppercase; letter-spacing:0.05em; margin: 18px 4px 8px;">Lopende opmetingen</div>`;
+    list.forEach(wip => {
+        const dnw = wip.dnw || '(geen DNW)';
+        const plaats = wip.plaats || '';
+        const titel = plaats ? `${dnw} — ${plaats}` : dnw;
+        html += `<div class="swipe-wrap" data-wip-id="${wip.id}">
+            <div class="swipe-delete" onclick="deleteWip(${wip.id}, event)">Verwijderen</div>
+            <div class="swipe-card">
+                <span>${titel}</span>
+                <span class="chevron">›</span>
+            </div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+    attachSwipeHandlers();
+}
+
+// ===================== SWIPE-TO-DELETE =====================
+let swipeActive = null; // { card, startX, dx, moved, openCard }
+const SWIPE_OPEN_OFFSET = -130;
+const SWIPE_THRESHOLD = 50; // dx waarbij we openklappen
+
+function attachSwipeHandlers() {
+    document.querySelectorAll('.swipe-card').forEach(card => {
+        const wrap = card.closest('.swipe-wrap');
+        const wipId = parseInt(wrap.dataset.wipId);
+
+        // Touch events
+        card.addEventListener('touchstart', e => onSwipeStart(e, card), { passive: true });
+        card.addEventListener('touchmove', e => onSwipeMove(e, card), { passive: false });
+        card.addEventListener('touchend', e => onSwipeEnd(e, card, wipId));
+        card.addEventListener('touchcancel', e => onSwipeEnd(e, card, wipId));
+
+        // Mouse events (desktop)
+        card.addEventListener('mousedown', e => onSwipeStart(e, card));
+    });
+
+    // Globale mousemove/mouseup zodat het werkt ook als de muis de kaart verlaat
+    document.addEventListener('mousemove', onGlobalMouseMove);
+    document.addEventListener('mouseup', onGlobalMouseUp);
+}
+
+function getX(e) {
+    return e.touches ? e.touches[0].clientX : (e.changedTouches ? e.changedTouches[0].clientX : e.clientX);
+}
+
+function onSwipeStart(e, card) {
+    // Sluit andere open kaarten
+    document.querySelectorAll('.swipe-card.open').forEach(c => {
+        if (c !== card) {
+            c.classList.remove('open');
+            c.style.transform = 'translateX(0)';
+        }
+    });
+
+    const isOpen = card.classList.contains('open');
+    swipeActive = {
+        card,
+        startX: getX(e),
+        dx: 0,
+        moved: false,
+        wasOpen: isOpen
+    };
+    card.classList.add('swiping');
+}
+
+function onSwipeMove(e, card) {
+    if (!swipeActive || swipeActive.card !== card) return;
+    const x = getX(e);
+    let dx = x - swipeActive.startX;
+    // Als de kaart al open was, vertrekken vanaf de open-positie
+    if (swipeActive.wasOpen) dx += SWIPE_OPEN_OFFSET;
+
+    if (Math.abs(dx) > 5) swipeActive.moved = true;
+
+    // Beperk: niet voorbij 0 naar rechts, niet voorbij open-offset naar links
+    dx = Math.max(SWIPE_OPEN_OFFSET - 20, Math.min(0, dx));
+    swipeActive.dx = dx;
+    card.style.transform = `translateX(${dx}px)`;
+
+    // Voorkom standaard scroll alleen als we duidelijk horizontaal swipen
+    if (e.cancelable && Math.abs(dx) > 8) e.preventDefault();
+}
+
+function onGlobalMouseMove(e) {
+    if (!swipeActive) return;
+    onSwipeMove(e, swipeActive.card);
+}
+
+function onGlobalMouseUp(e) {
+    if (!swipeActive) return;
+    const card = swipeActive.card;
+    const wipId = parseInt(card.closest('.swipe-wrap').dataset.wipId);
+    onSwipeEnd(e, card, wipId);
+}
+
+function onSwipeEnd(e, card, wipId) {
+    if (!swipeActive || swipeActive.card !== card) return;
+    card.classList.remove('swiping');
+
+    const dx = swipeActive.dx;
+    const moved = swipeActive.moved;
+    const wasOpen = swipeActive.wasOpen;
+
+    // Bepaal eindtoestand
+    let shouldOpen;
+    if (!moved) {
+        // Tik zonder slepen
+        if (wasOpen) {
+            // Kaart was open: tik = sluit
+            shouldOpen = false;
+        } else {
+            // Kaart was dicht: tik = openen WIP
+            swipeActive = null;
+            openWip(wipId);
+            return;
+        }
+    } else {
+        // Sleepbeweging: open als voorbij drempel
+        shouldOpen = dx < -SWIPE_THRESHOLD;
+    }
+
+    if (shouldOpen) {
+        card.classList.add('open');
+        card.style.transform = `translateX(${SWIPE_OPEN_OFFSET}px)`;
+    } else {
+        card.classList.remove('open');
+        card.style.transform = 'translateX(0)';
+    }
+    swipeActive = null;
+}
+
+function openArchiefVanStart() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('archief-form').style.display = 'block';
+    // Verberg main-ui zeker
+    document.getElementById('main-ui').style.display = 'none';
+    renderArchiefLijst();
+    window.scrollTo(0, 0);
+}
+
+function closeArchiefNaarStart() {
+    document.getElementById('archief-form').style.display = 'none';
+    document.getElementById('start-screen').style.display = 'block';
+    renderStartScreen();
+    window.scrollTo(0, 0);
+}
+
+// Override openArchief en closeArchief — niet meer gebruikt vanuit main-ui
+// (behouden voor compat, maar gaan ook naar start)
+function openArchief() { openArchiefVanStart(); }
+function closeArchief() { closeArchiefNaarStart(); }
+
+// Override loadFromArchive: ook openen als WIP zodat de gebruiker kan aanpassen
+function loadFromArchive(idx) {
+    const list = getArchief();
+    if (!list[idx]) return;
+    loadSnapshot(list[idx]);
+    // Maak er een nieuwe WIP-sessie van zodat aanpassingen niet meteen het archief overschrijven
+    currentWipId = Date.now();
+    document.getElementById('archief-form').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'block';
+    renderCurrentLabel();
+    window.scrollTo(0, 0);
+}
+
+// Wanneer een PDF wordt gegenereerd: verwijder uit WIP, sla in archief op
+const _originalSaveToArchive = saveToArchive;
+saveToArchive = function() {
+    _originalSaveToArchive();
+    // Verwijder de huidige WIP uit de lijst (verhuist naar archief)
+    if (currentWipId !== null) {
+        const list = getWipList();
+        saveWipList(list.filter(w => w.id !== currentWipId));
+    }
+};
+
+// Auto-save hooks: wrap bestaande save-functies
+const _originalSaveSleuf = saveSleuf;
+saveSleuf = function() { _originalSaveSleuf(); autoSaveWip(); };
+
+const _originalSavePut = savePut;
+savePut = function() { _originalSavePut(); autoSaveWip(); };
+
+const _originalSaveMeerwerken = saveMeerwerken;
+saveMeerwerken = function() { _originalSaveMeerwerken(); autoSaveWip(); };
+
+const _originalSaveOpmerking = saveOpmerking;
+saveOpmerking = function() { _originalSaveOpmerking(); autoSaveWip(); };
+
+const _originalSaveHandtekeningen = saveHandtekeningen;
+saveHandtekeningen = function() { _originalSaveHandtekeningen(); autoSaveWip(); };
+
+// Auto-save bij wijzigen van header-velden (DNW, Plaats, Aannemer, ...)
+['dnw','piloot','plaats','aannemer','s-datum','o-datum'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => { autoSaveWip(); renderCurrentLabel(); });
+});
+['c-start','c-veilig','c-eind'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', autoSaveWip);
+});
+// Leiding-checkboxes
+document.querySelectorAll('#header-content input[type="checkbox"]').forEach(cb => {
+    if (!['c-start','c-veilig','c-eind'].includes(cb.id)) {
+        cb.addEventListener('change', autoSaveWip);
+    }
+});
+
+// Init: toon startscherm bij eerste laad
+renderStartScreen();
 </script>
 </body>
 </html>
