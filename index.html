@@ -135,6 +135,7 @@
                 <div class="check-group">
                     <label><input type="checkbox" id="c-start"> Startverg. (3004943)</label>
                     <label><input type="checkbox" id="c-veilig"> Veiligheidscoörd.</label>
+                    <label><input type="checkbox" id="c-eind"> Eindmeetstaat</label>
                 </div>
 
                 <h3 onclick="toggle(this)">Fluvius (Elek & Gas) <span>▼</span></h3>
@@ -228,6 +229,15 @@
 
         <button class="btn" style="background:#c0392b; margin-top:8px;" onclick="openHandtekeningForm()">✍️ HANDTEKENINGEN</button>
         <button class="btn" style="background:#000; margin-top:20px;" onclick="doPrint()">📄 GENEREER PDF (ALLE PAGINA'S)</button>
+        <button class="btn" style="background:#34495e; margin-top:8px;" onclick="openArchief()">🗂️ ARCHIEF</button>
+    </div>
+
+    <!-- ===================== ARCHIEF ===================== -->
+    <div id="archief-form" class="card" style="display:none;">
+        <h2>Archief</h2>
+        <p style="font-size:0.82rem; color:#555; margin-bottom:10px;">Hier vind je alle eerder opgeslagen opmetingen. Ze worden automatisch lokaal bewaard wanneer je een PDF genereert.</p>
+        <div id="archief-lijst"></div>
+        <button class="btn" style="background:#666; margin-top:8px;" onclick="closeArchief()">SLUITEN</button>
     </div>
 
     <!-- ===================== SLEUF FORM (ONGEWIJZIGD) ===================== -->
@@ -290,6 +300,13 @@
                 
                 <label class="choice-item"><input type="checkbox" class="work" value="bronbemaling"> Bronbemaling</label>
             </div>
+        </div>
+
+        <!-- Subtiel opmerking-veld dat naar de algemene opmerkingen gaat -->
+        <div style="margin: 8px 4px 4px; font-size:0.7rem; color:#888;">
+            <span style="opacity:0.8;">Snelle opmerking (gaat naar algemene opmerkingen):</span>
+            <input type="text" id="sleuf-quick-opm" placeholder="Optioneel: extra info bij deze sleuf..." 
+                style="width:100%; margin-top:3px; padding:6px 8px; border:1px solid #ddd; border-radius:6px; font-size:0.8rem; background:#fafafa; color:#555;">
         </div>
 
         <div class="card" style="background:var(--accent);">
@@ -556,6 +573,7 @@ function openSleufForm(idx = -1) {
         document.querySelectorAll('.work-val').forEach(v => v.value = "");
         document.querySelector('input[name="surf"][value="berm"]').checked = true;
     }
+    document.getElementById('sleuf-quick-opm').value = ""; // altijd leeg bij openen
     uiSwitch();
     document.getElementById('main-ui').style.display = "none";
     document.getElementById('sleuf-form').style.display = "block";
@@ -583,6 +601,27 @@ function saveSleuf() {
 
     if(!s.len) return alert("Vul lengte in");
     if(editIdx > -1) sleuven[editIdx] = s; else sleuven.push(s);
+
+    // Snelle opmerking toevoegen aan algemene opmerkingen
+    const quickOpm = document.getElementById('sleuf-quick-opm').value.trim();
+    if (quickOpm) {
+        const sleufLabel = `A-${(editIdx > -1 ? editIdx + 1 : sleuven.length).toString().padStart(2, '0')}`;
+        const nieuweRegel = `[${sleufLabel}] ${quickOpm}`;
+        opmerkingTekst = (opmerkingTekst ? opmerkingTekst + '\n' : '') + nieuweRegel;
+        // Update samenvatting
+        if (typeof renderOpmerkingenSamenvatting === 'function') renderOpmerkingenSamenvatting();
+        else {
+            const cont = document.getElementById('opmerkingen-samenvatting');
+            const preview = opmerkingTekst.length > 80 ? opmerkingTekst.substring(0,80)+'…' : opmerkingTekst;
+            cont.innerHTML = `<div class="overzicht-card" onclick="openOpmerkingForm()">
+                <div class="overzicht-card-header" style="background:#16a085; color:white;">
+                    <span>Opmerkingen</span>
+                    <span class="edit-tag">bewerk</span>
+                </div>
+                <div class="overzicht-card-body" style="font-style:italic; color:#555;">${preview.replace(/\n/g,' ')}</div>
+            </div>`;
+        }
+    }
 
     renderLijst(); renderPrint(); closeForm();
 }
@@ -656,7 +695,7 @@ function renderPrint() {
         h += `<div class="header-box">
             <div><b>DNW:</b> ${document.getElementById('dnw').value}<br><b>Start:</b> ${document.getElementById('s-datum').value}<br><b>Startverg:</b> ${document.getElementById('c-start').checked?'JA':'NEE'}</div>
             <div><b>Aannemer:</b> ${document.getElementById('aannemer').value}<br><b>Opmeting:</b> ${document.getElementById('o-datum').value}<br><b>Veiligheid:</b> ${document.getElementById('c-veilig').checked?'JA':'NEE'}</div>
-            <div><b>Piloot:</b> ${document.getElementById('piloot').value}<br><b>Plaats:</b> ${document.getElementById('plaats').value}</div>
+            <div><b>Piloot:</b> ${document.getElementById('piloot').value}<br><b>Plaats:</b> ${document.getElementById('plaats').value}<br><b>Eindmeetstaat:</b> ${document.getElementById('c-eind').checked?'JA':'NEE'}</div>
         </div>`;
 
         h += `<table class="p1-table"><tr><th class="row-label">Omschrijving</th>`;
@@ -1058,28 +1097,59 @@ function getRequiredSigners() {
     return signers;
 }
 
+// Storage voor handtekening-metadata: { partij: { naam, dossier, sig } }
+let handtekeningMeta = {};
+
 function openHandtekeningForm() {
     const signers = getRequiredSigners();
     const container = document.getElementById('sig-blocks-container');
     container.innerHTML = '';
+    const dnwValue = document.getElementById('dnw').value || '';
+
     signers.forEach(name => {
         const wrap = document.createElement('div');
         wrap.className = 'sig-pad-wrap card';
         const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        const meta = handtekeningMeta[name] || {};
+
+        // Aannemer: alleen naam (geen dossiernr)
+        // Fluvius: dossiernr standaard = DNW
+        const isAannemer = (name === 'Aannemer');
+        const isFluvius = (name === 'Fluvius');
+        const defaultDossier = meta.dossier || (isFluvius ? dnwValue : '');
+
+        let metaFields = `<div style="display:grid; grid-template-columns:1fr ${isAannemer ? '' : '1fr'}; gap:8px; margin-bottom:8px;">
+            <div>
+                <label style="font-size:0.7rem; color:#666;">Naam</label>
+                <input type="text" id="sig-naam-${safeId}" value="${meta.naam || ''}" placeholder="Naam ondertekenaar" 
+                    style="width:100%; padding:8px; font-size:0.85rem; border:1px solid #ccc; border-radius:6px;">
+            </div>`;
+        if (!isAannemer) {
+            metaFields += `<div>
+                <label style="font-size:0.7rem; color:#666;">Dossiernummer</label>
+                <input type="text" id="sig-dossier-${safeId}" value="${defaultDossier}" placeholder="Dossiernr." 
+                    style="width:100%; padding:8px; font-size:0.85rem; border:1px solid #ccc; border-radius:6px;">
+            </div>`;
+        }
+        metaFields += `</div>`;
+
         wrap.innerHTML = `<div class="sig-pad-label">${name}</div>
-            <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Naam + Handtekening</div>
+            ${metaFields}
+            <div style="font-size:0.75rem;color:#888;margin-bottom:4px;">Handtekening:</div>
             <canvas class="sig-canvas" id="sig-canvas-${safeId}" width="600" height="150"></canvas>
             <button class="sig-clear-btn" onclick="clearSig('${safeId}')">Wissen</button>`;
         container.appendChild(wrap);
     });
+
     signers.forEach(name => {
         const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
         initSigPad(safeId);
-        if (handtekeningen[name]) {
+        const meta = handtekeningMeta[name] || {};
+        if (meta.sig) {
             const canvas = document.getElementById(`sig-canvas-${safeId}`);
             const img = new Image();
             img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
-            img.src = handtekeningen[name];
+            img.src = meta.sig;
         }
     });
     document.getElementById('main-ui').style.display = 'none';
@@ -1130,7 +1200,15 @@ function saveHandtekeningen() {
     signers.forEach(name => {
         const safeId = name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
         const canvas = document.getElementById(`sig-canvas-${safeId}`);
-        if (canvas) handtekeningen[name] = canvas.toDataURL();
+        const naamInput = document.getElementById(`sig-naam-${safeId}`);
+        const dossierInput = document.getElementById(`sig-dossier-${safeId}`);
+        if (!handtekeningMeta[name]) handtekeningMeta[name] = {};
+        handtekeningMeta[name].naam = naamInput ? naamInput.value : '';
+        handtekeningMeta[name].dossier = dossierInput ? dossierInput.value : '';
+        if (canvas) {
+            handtekeningMeta[name].sig = canvas.toDataURL();
+            handtekeningen[name] = canvas.toDataURL(); // backwards compatibility
+        }
     });
     closeHandtekeningForm();
     alert('Handtekeningen opgeslagen!');
@@ -1240,12 +1318,17 @@ function renderPagina2() {
     // Vul aan tot minstens 4 voor de grid
     while (allSigSlots.length < 4) allSigSlots.push('');
     allSigSlots.forEach(name => {
-        const imgData = name ? (handtekeningen[name] || '') : '';
+        const meta = name ? (handtekeningMeta[name] || {}) : {};
+        const imgData = meta.sig || (name ? (handtekeningen[name] || '') : '');
+        const naam = meta.naam || '';
+        const dossier = meta.dossier || '';
+        const isAannemer = (name === 'Aannemer');
         sigHtml += `<td style="border:0.4pt solid #999;padding:3px;width:25%;vertical-align:top;">
             <div style="font-weight:bold;font-size:6pt;">${name || 'Synergiepartner'}</div>
-            <div style="font-size:5pt;color:#666;border-bottom:0.3pt solid #ccc;margin-bottom:2pt;">Naam + Handtekening</div>
-            ${imgData ? `<img style="max-width:100%;max-height:40pt;" src="${imgData}">` : `<div style="height:40pt;"></div>`}
-            <div style="font-size:5pt;color:#666;border-top:0.3pt solid #ccc;margin-top:2pt;">Ref.nr: ___________</div>
+            <div style="font-size:5pt;color:#444;margin-top:1pt;">Naam: <b>${naam || '___________'}</b></div>
+            ${!isAannemer ? `<div style="font-size:5pt;color:#444;">Dossiernr.: <b>${dossier || '___________'}</b></div>` : ''}
+            <div style="font-size:5pt;color:#666;border-bottom:0.3pt solid #ccc;margin:2pt 0 1pt;">Handtekening</div>
+            ${imgData ? `<img style="max-width:100%;max-height:36pt;" src="${imgData}">` : `<div style="height:36pt;"></div>`}
         </td>`;
     });
 
@@ -1274,11 +1357,11 @@ function renderPagina2() {
                 <b>Startverg. (3004943):</b> ${document.getElementById('c-start').checked?'☑':'☐'}&nbsp;&nbsp;
                 <b>DNW:</b> ${dnw}<br>
                 <b>Veiligheidscoörd.:</b> ${document.getElementById('c-veilig').checked?'☑':'☐'}&nbsp;&nbsp;
-                <b>Piloot:</b> ${piloot}
+                <b>Piloot:</b> ${piloot}<br>
+                <b>Eindmeetstaat:</b> ${document.getElementById('c-eind').checked?'☑':'☐'}
             </td>
             <td style="padding:3px 5px;border-right:0.5pt solid black;width:33%;">
-                <b>Plaats:</b> ${plaats}<br>
-                <b>Omschrijving:</b>
+                <b>Plaats:</b> ${plaats}
             </td>
             <td style="padding:3px 5px;width:34%;">
                 <b>Startdatum:</b> ${sDatum}<br>
@@ -1287,7 +1370,7 @@ function renderPagina2() {
         </tr>
         <tr>
             <td colspan="3" style="padding:2px 5px;border-top:0.5pt solid black;">
-                <b>Eindmeetstaat &nbsp; Aannemer:</b> ${aannemer} &nbsp;&nbsp;&nbsp; <b>Volgnummer:</b>
+                <b>Aannemer:</b> ${aannemer} &nbsp;&nbsp;&nbsp; <b>Volgnummer:</b>
             </td>
         </tr>
     </table>
@@ -1369,18 +1452,23 @@ function renderPagina2() {
 // ================================================================
 // GENEREER PDF (BEIDE PAGINA'S) — download als bestand
 // ================================================================
+function sanitizeFilename(s) {
+    return (s || '').toString().trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '').replace(/\s+/g, '_').substring(0, 80);
+}
+
 function doPrint() {
     renderPrint();
     renderPagina2();
 
     const dnw = document.getElementById('dnw').value || 'opmeting';
-    const datum = document.getElementById('o-datum').value || new Date().toISOString().slice(0,10);
-    const filename = `${dnw}_${datum}.pdf`;
+    const plaats = document.getElementById('plaats').value || '';
+    const filename = `${sanitizeFilename(dnw)}${plaats ? '_' + sanitizeFilename(plaats) : ''}.pdf`;
 
     const p1 = document.getElementById('print-area').innerHTML;
     const p2 = document.getElementById('print-area-p2').innerHTML;
 
     const fullHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>${filename.replace('.pdf','')}</title>
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         @page { margin: 8mm; size: A4 landscape; }
@@ -1396,6 +1484,9 @@ function doPrint() {
     <div>${p1}</div>
     <div>${p2}</div>
     </body></html>`;
+
+    // Sla op in archief
+    saveToArchive();
 
     const blob = new Blob([fullHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -1416,6 +1507,181 @@ function doPrint() {
         setTimeout(() => URL.revokeObjectURL(url), 5000);
         alert('Popup geblokkeerd. Sta popups toe voor dit bestand, of open het gedownloade HTML-bestand en gebruik Ctrl+P → "Opslaan als PDF".');
     }
+}
+
+// ================================================================
+// ARCHIEF
+// ================================================================
+const ARCHIEF_KEY = 'fluvius_pro_archief_v1';
+
+function getCurrentSnapshot() {
+    return {
+        id: Date.now(),
+        savedAt: new Date().toISOString(),
+        // Hoofding
+        dnw: document.getElementById('dnw').value,
+        piloot: document.getElementById('piloot').value,
+        plaats: document.getElementById('plaats').value,
+        aannemer: document.getElementById('aannemer').value,
+        sDatum: document.getElementById('s-datum').value,
+        oDatum: document.getElementById('o-datum').value,
+        cStart: document.getElementById('c-start').checked,
+        cVeilig: document.getElementById('c-veilig').checked,
+        cEind: document.getElementById('c-eind').checked,
+        // Geselecteerde checkboxes in header
+        headerChecks: Array.from(document.querySelectorAll('#header-content input[type="checkbox"]:checked')).map(c => c.value).filter(v => v && v !== 'on'),
+        // Extra tekst velden
+        extraTexts: Array.from(document.querySelectorAll('.extra-text')).map(t => ({ value: t.value, visible: t.style.display !== 'none' })),
+        netExtraNaam: document.querySelector('.net-extra-naam')?.value || '',
+        // Data
+        sleuven: sleuven,
+        putten: putten,
+        meerwerkenData: meerwerkenData,
+        opmerkingTekst: opmerkingTekst,
+        handtekeningMeta: handtekeningMeta,
+        handtekeningen: handtekeningen
+    };
+}
+
+function loadSnapshot(snap) {
+    // Hoofding
+    document.getElementById('dnw').value = snap.dnw || '';
+    document.getElementById('piloot').value = snap.piloot || 'Fluvius';
+    document.getElementById('plaats').value = snap.plaats || '';
+    document.getElementById('aannemer').value = snap.aannemer || '';
+    document.getElementById('s-datum').value = snap.sDatum || '';
+    document.getElementById('o-datum').value = snap.oDatum || '';
+    document.getElementById('c-start').checked = !!snap.cStart;
+    document.getElementById('c-veilig').checked = !!snap.cVeilig;
+    document.getElementById('c-eind').checked = !!snap.cEind;
+
+    // Reset all header checkboxes, dan herstel
+    document.querySelectorAll('#header-content input[type="checkbox"]').forEach(c => {
+        if (c.id !== 'c-start' && c.id !== 'c-veilig' && c.id !== 'c-eind') c.checked = false;
+    });
+    (snap.headerChecks || []).forEach(val => {
+        const cb = document.querySelector(`#header-content input[type="checkbox"][value="${val}"]`);
+        if (cb) cb.checked = true;
+    });
+
+    // Extra tekstvelden
+    const extraInputs = document.querySelectorAll('.extra-text');
+    (snap.extraTexts || []).forEach((et, i) => {
+        if (extraInputs[i]) {
+            extraInputs[i].value = et.value || '';
+            extraInputs[i].style.display = et.visible ? 'block' : 'none';
+        }
+    });
+    const netNaam = document.querySelector('.net-extra-naam');
+    if (netNaam) netNaam.value = snap.netExtraNaam || '';
+
+    // Data
+    sleuven = snap.sleuven || [];
+    putten = snap.putten || [];
+    meerwerkenData = snap.meerwerkenData || {};
+    opmerkingTekst = snap.opmerkingTekst || '';
+    handtekeningMeta = snap.handtekeningMeta || {};
+    handtekeningen = snap.handtekeningen || {};
+
+    // Render alle samenvattingen
+    renderLijst();
+    renderPuttenLijst();
+    renderMeerwerkenSamenvatting();
+    // Opmerkingen card
+    const opmCont = document.getElementById('opmerkingen-samenvatting');
+    if (opmerkingTekst.trim()) {
+        const preview = opmerkingTekst.length > 80 ? opmerkingTekst.substring(0,80)+'…' : opmerkingTekst;
+        opmCont.innerHTML = `<div class="overzicht-card" onclick="openOpmerkingForm()">
+            <div class="overzicht-card-header" style="background:#16a085; color:white;">
+                <span>Opmerkingen</span>
+                <span class="edit-tag">bewerk</span>
+            </div>
+            <div class="overzicht-card-body" style="font-style:italic; color:#555;">${preview.replace(/\n/g,' ')}</div>
+        </div>`;
+    } else opmCont.innerHTML = '';
+}
+
+function getArchief() {
+    try {
+        return JSON.parse(localStorage.getItem(ARCHIEF_KEY) || '[]');
+    } catch (e) { return []; }
+}
+
+function saveArchief(list) {
+    try {
+        localStorage.setItem(ARCHIEF_KEY, JSON.stringify(list));
+    } catch (e) {
+        alert('Archief kon niet opgeslagen worden — opslagruimte is vol. Verwijder oude opmetingen via het archief.');
+    }
+}
+
+function saveToArchive() {
+    const snap = getCurrentSnapshot();
+    const list = getArchief();
+    // Update als zelfde DNW+Plaats+oDatum bestaat, anders toevoegen
+    const sleutel = `${snap.dnw}|${snap.plaats}|${snap.oDatum}`;
+    const idx = list.findIndex(s => `${s.dnw}|${s.plaats}|${s.oDatum}` === sleutel);
+    if (idx > -1) list[idx] = snap;
+    else list.unshift(snap);
+    saveArchief(list);
+}
+
+function openArchief() {
+    renderArchiefLijst();
+    document.getElementById('main-ui').style.display = 'none';
+    document.getElementById('archief-form').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function closeArchief() {
+    document.getElementById('main-ui').style.display = 'block';
+    document.getElementById('archief-form').style.display = 'none';
+}
+
+function renderArchiefLijst() {
+    const cont = document.getElementById('archief-lijst');
+    const list = getArchief();
+    if (!list.length) {
+        cont.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Nog geen opmetingen in archief.<br><small>Het archief wordt automatisch aangevuld telkens je een PDF genereert.</small></p>';
+        return;
+    }
+    let html = '';
+    list.forEach((snap, i) => {
+        const aantalSleuven = (snap.sleuven || []).length;
+        const aantalPutten = (snap.putten || []).length;
+        const dt = snap.savedAt ? new Date(snap.savedAt).toLocaleString('nl-BE', {dateStyle:'short', timeStyle:'short'}) : '';
+        html += `<div class="overzicht-card" style="cursor:default;">
+            <div class="overzicht-card-header" style="background:#34495e; color:white;">
+                <span>${snap.dnw || '(geen DNW)'} — ${snap.plaats || '(geen plaats)'}</span>
+                <span class="edit-tag">${snap.oDatum || ''}</span>
+            </div>
+            <div class="overzicht-card-body">
+                <div style="font-size:0.75rem; color:#666; margin-bottom:6px;">Opgeslagen: ${dt} · ${aantalSleuven} sleuven · ${aantalPutten} putten</div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button onclick="loadFromArchive(${i})" style="background:#16a085; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">📂 Openen</button>
+                    <button onclick="deleteFromArchive(${i})" style="background:#c0392b; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">🗑️ Verwijderen</button>
+                </div>
+            </div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function loadFromArchive(idx) {
+    const list = getArchief();
+    if (!list[idx]) return;
+    if (!confirm('De huidige opname zal vervangen worden door de geselecteerde opname uit het archief. Doorgaan?')) return;
+    loadSnapshot(list[idx]);
+    closeArchief();
+}
+
+function deleteFromArchive(idx) {
+    const list = getArchief();
+    if (!list[idx]) return;
+    if (!confirm(`Verwijderen: ${list[idx].dnw || ''} - ${list[idx].plaats || ''}?`)) return;
+    list.splice(idx, 1);
+    saveArchief(list);
+    renderArchiefLijst();
 }
 </script>
 </body>
