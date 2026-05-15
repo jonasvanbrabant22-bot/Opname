@@ -1767,6 +1767,7 @@ function deleteFromArchive(idx) {
 // ================================================================
 const WIP_KEY = 'fluvius_pro_wip_v1';
 let currentWipId = null; // welke WIP-opmeting we nu bewerken
+let viewOnlyArchiveId = null; // archief-id dat we enkel raadplegen (geen WIP tot er bewerkt wordt)
 
 function getWipList() {
     try { return JSON.parse(localStorage.getItem(WIP_KEY) || '[]'); }
@@ -1779,6 +1780,12 @@ function saveWipList(list) {
 }
 
 function autoSaveWip() {
+    // Als we in view-only mode zitten (archief raadplegen): promoot nu naar WIP
+    // omdat er duidelijk een echte wijziging gebeurd is
+    if (viewOnlyArchiveId !== null && currentWipId === null) {
+        currentWipId = Date.now();
+        viewOnlyArchiveId = null;
+    }
     // Sla huidige opmeting op als WIP (alleen als er iets ingevuld is)
     if (currentWipId === null) return; // niet actief
     const snap = getCurrentSnapshot();
@@ -1807,6 +1814,7 @@ function startNieuweOpmeting() {
     // Wis huidige data
     resetForm();
     currentWipId = Date.now();
+    viewOnlyArchiveId = null;
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('main-ui').style.display = 'block';
     renderCurrentLabel();
@@ -1851,8 +1859,12 @@ function resetForm() {
 }
 
 function terugNaarStart() {
-    autoSaveWip();
+    // Sla enkel op als we echt aan een WIP werken (geen view-only)
+    if (currentWipId !== null) {
+        autoSaveWip();
+    }
     currentWipId = null;
+    viewOnlyArchiveId = null;
     document.getElementById('main-ui').style.display = 'none';
     document.getElementById('start-screen').style.display = 'block';
     renderStartScreen();
@@ -1865,6 +1877,7 @@ function openWip(id) {
     if (!wip) return alert('Opmeting niet gevonden');
     loadSnapshot(wip);
     currentWipId = id;
+    viewOnlyArchiveId = null;
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('main-ui').style.display = 'block';
     renderCurrentLabel();
@@ -2039,13 +2052,14 @@ function closeArchiefNaarStart() {
 function openArchief() { openArchiefVanStart(); }
 function closeArchief() { closeArchiefNaarStart(); }
 
-// Override loadFromArchive: ook openen als WIP zodat de gebruiker kan aanpassen
+// Override loadFromArchive: open in view-only modus, geen WIP tot er bewerkt wordt
 function loadFromArchive(idx) {
     const list = getArchief();
     if (!list[idx]) return;
     loadSnapshot(list[idx]);
-    // Maak er een nieuwe WIP-sessie van zodat aanpassingen niet meteen het archief overschrijven
-    currentWipId = Date.now();
+    // GEEN currentWipId zetten — enkel view-only
+    currentWipId = null;
+    viewOnlyArchiveId = list[idx].id;
     document.getElementById('archief-form').style.display = 'none';
     document.getElementById('main-ui').style.display = 'block';
     renderCurrentLabel();
@@ -2053,6 +2067,7 @@ function loadFromArchive(idx) {
 }
 
 // Wanneer een PDF wordt gegenereerd: verwijder uit WIP, sla in archief op
+// en zet over in view-only modus (verder raadplegen = geen nieuwe WIP)
 const _originalSaveToArchive = saveToArchive;
 saveToArchive = function() {
     _originalSaveToArchive();
@@ -2061,6 +2076,16 @@ saveToArchive = function() {
         const list = getWipList();
         saveWipList(list.filter(w => w.id !== currentWipId));
     }
+    // Zoek de net opgeslagen archief-entry op (zelfde DNW+Plaats+oDatum)
+    const dnw = document.getElementById('dnw').value;
+    const plaats = document.getElementById('plaats').value;
+    const oDatum = document.getElementById('o-datum').value;
+    const archief = getArchief();
+    const sleutel = `${dnw}|${plaats}|${oDatum}`;
+    const archiefEntry = archief.find(s => `${s.dnw}|${s.plaats}|${s.oDatum}` === sleutel);
+    // Schakel over naar view-only modus zodat verder raadplegen geen nieuwe WIP maakt
+    currentWipId = null;
+    viewOnlyArchiveId = archiefEntry ? archiefEntry.id : null;
 };
 
 // Auto-save hooks: wrap bestaande save-functies
